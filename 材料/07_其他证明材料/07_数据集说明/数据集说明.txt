@@ -1,0 +1,5 @@
+演示数据：data/demo/（CSV 灌入 SQLite）。
+间隔 5 分钟，成都四口之家，夏季，约 30 天。
+四路：电力 energy_records、室内环境 environment_records、占用行为 behavior_records、天气 weather_records。
+设备 8 类。异常对照 anomaly_labels。
+模式为 demo 仿真灌标准表，不是实时电表采集。

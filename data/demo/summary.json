@@ -1,0 +1,20 @@
+{
+  "days": 30,
+  "interval_minutes": 5,
+  "points": 8640,
+  "energy_rows": 69120,
+  "demo_date": "2026-08-19",
+  "today_energy_kwh": 18.728,
+  "yesterday_energy_kwh": 21.055,
+  "device_share_percent": {
+    "air_conditioner": 41.31,
+    "refrigerator": 11.8,
+    "water_heater": 22.3,
+    "washing_machine": 2.95,
+    "television": 4.92,
+    "lighting": 7.87,
+    "computer": 6.89,
+    "other": 1.97
+  },
+  "injected_anomalies": 13
+}

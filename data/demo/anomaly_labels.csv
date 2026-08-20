@@ -1,0 +1,14 @@
+timestamp,device_id,anomaly_type,description,severity
+2026-08-19 03:15:00,3,unusual_time,03:17 热水器异常启动，家庭过去30天凌晨几乎从未使用热水器,medium
+2026-08-19 03:20:00,3,unusual_time,03:17 热水器异常启动，家庭过去30天凌晨几乎从未使用热水器,medium
+2026-08-19 03:25:00,3,unusual_time,03:17 热水器异常启动，家庭过去30天凌晨几乎从未使用热水器,medium
+2026-08-07 02:40:00,1,unusual_time,凌晨空调异常高功率运行,high
+2026-08-07 02:45:00,1,unusual_time,凌晨空调异常高功率运行,high
+2026-08-11 15:10:00,4,habit_deviation,工作日下午洗衣机异常启动,low
+2026-08-11 15:15:00,4,habit_deviation,工作日下午洗衣机异常启动,low
+2026-08-14 21:20:00,1,high_power,晚高峰空调功率异常冲高,high
+2026-08-14 21:25:00,1,high_power,晚高峰空调功率异常冲高,high
+2026-08-16 00:30:00,6,long_running,凌晨照明长时间未关,medium
+2026-08-16 00:35:00,6,long_running,凌晨照明长时间未关,medium
+2026-08-18 13:05:00,7,habit_deviation,无人在家时电脑满载运行,low
+2026-08-18 13:10:00,7,habit_deviation,无人在家时电脑满载运行,low

@@ -1,0 +1,47 @@
+{
+  "forecast": {
+    "MAE": 95.9065,
+    "RMSE": 203.3037,
+    "MAPE": 17.5245,
+    "R2": 0.9525,
+    "accuracy": 82.48,
+    "model_name": "XGBoostRegressor",
+    "model_version": "v1",
+    "samples": 696
+  },
+  "anomaly_model": {
+    "model_name": "IsolationForest",
+    "samples": 8638,
+    "score_mean": -0.07830209072352914,
+    "score_std": 0.03994011146848444
+  },
+  "anomaly_detection": {
+    "precision": 0.2593,
+    "recall": 0.5385,
+    "f1": 0.35,
+    "labeled": 13,
+    "detected": 27
+  },
+  "load_identification": {
+    "model_name": "RandomForestClassifier",
+    "accuracy": 0.9513,
+    "macro_f1": 0.9515,
+    "samples": 5752
+  },
+  "strategy": {
+    "today_energy": 18.72759759162613,
+    "device_energy": {
+      "air_conditioner": 7.736,
+      "computer": 1.289,
+      "lighting": 1.474,
+      "other": 0.368,
+      "refrigerator": 2.21,
+      "television": 0.921,
+      "washing_machine": 0.553,
+      "water_heater": 4.176
+    },
+    "anomaly_night_heater": true,
+    "top_strategy": "空调温度从 24℃ 调整到 26℃"
+  },
+  "generated_at": "2026-08-19T17:13:50"
+}

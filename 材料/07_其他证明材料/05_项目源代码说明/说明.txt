@@ -1,0 +1,3 @@
+完整工程位于项目根目录，不把 node_modules、.venv、SQLite 大库打进本 ZIP，以免超过 100 MB。
+根目录含 frontend/ backend/ ai/ scripts/ tests/ models/ data/demo/。
+启动见 README：前端 http://127.0.0.1:5174/  后端 http://127.0.0.1:8000/docs

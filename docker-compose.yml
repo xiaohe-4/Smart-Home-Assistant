@@ -1,0 +1,45 @@
+services:
+  db:
+    image: postgres:16
+    container_name: smart-energy-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: smart_energy
+      POSTGRES_PASSWORD: smart_energy
+      POSTGRES_DB: smart_energy
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: smart-energy-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+psycopg://smart_energy:smart_energy@db:5432/smart_energy
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: smart-energy-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:

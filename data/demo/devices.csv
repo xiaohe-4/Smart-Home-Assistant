@@ -1,0 +1,9 @@
+id,name,device_type,rated_power,user_id,status
+1,客厅变频空调,air_conditioner,1500,1,on
+2,双门冰箱,refrigerator,120,1,on
+3,储水式热水器,water_heater,2000,1,on
+4,滚筒洗衣机,washing_machine,400,1,on
+5,客厅电视,television,110,1,on
+6,全屋照明,lighting,180,1,on
+7,书房电脑,computer,220,1,on
+8,其他插座负荷,other,80,1,on
