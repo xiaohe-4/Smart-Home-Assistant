@@ -18,6 +18,7 @@ import type {
   SourceDegrade,
   SourceMap,
   SourceValidate,
+  SourceCompare,
   ModelLab,
 } from "../types";
 
@@ -89,6 +90,8 @@ export const sourceApi = {
     http.get<SourceDegrade>("/sources/degrade", { params: { drop: drop.join(",") } }).then((r) => r.data),
   validate: (modality: string, rows: Record<string, unknown>[]) =>
     http.post<SourceValidate>("/sources/validate", { modality, rows }).then((r) => r.data),
+  homes: () => http.get<{ homes: Array<{ id: number; key: string; label: string; name: string; note: string; available?: boolean }> }>("/sources/homes").then((r) => r.data),
+  compare: () => http.get<SourceCompare>("/sources/compare").then((r) => r.data),
 };
 
 export const modelsApi = {

@@ -32,7 +32,7 @@ def prepare_anomaly_frame(
         on="timestamp",
         how="left",
     )
-    frame["temperature"] = frame["temperature"].ffill().bfill()
+    frame["temperature"] = frame["temperature"].ffill().bfill().fillna(26.0)
     frame["occupancy"] = frame["occupancy"].ffill().bfill().fillna(0)
     frame["hour"] = frame["timestamp"].dt.hour
     frame["weekday"] = frame["timestamp"].dt.weekday

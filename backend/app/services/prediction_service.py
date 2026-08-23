@@ -11,13 +11,15 @@ settings = get_settings()
 METRICS_PATH = PROJECT_ROOT / "models" / "metrics.json"
 
 
-def _load_metrics() -> dict:
-    if METRICS_PATH.exists():
-        import json
+def _metrics_for_user(user_id: int) -> dict:
+    if not METRICS_PATH.exists():
+        return {}
+    import json
 
-        payload = json.loads(METRICS_PATH.read_text(encoding="utf-8"))
-        return payload.get("forecast", {})
-    return {}
+    payload = json.loads(METRICS_PATH.read_text(encoding="utf-8"))
+    if user_id == get_settings().real_user_id:
+        return (payload.get("real") or {}).get("forecast") or {}
+    return payload.get("forecast") or {}
 
 
 def get_prediction(db: Session, user_id: int, hours: int) -> dict:
@@ -43,7 +45,7 @@ def get_prediction(db: Session, user_id: int, hours: int) -> dict:
         .order_by(Prediction.timestamp)
         .all()
     )
-    metrics = _load_metrics()
+    metrics = _metrics_for_user(user_id)
     if not forecast_rows:
         # 模型尚未训练时，用最近负荷作为保守回退，避免前端空白，但不伪造精度
         series = query_series(db, user_id, *day_range(today), freq="h")
@@ -65,7 +67,7 @@ def get_prediction(db: Session, user_id: int, hours: int) -> dict:
         "metrics": {
             k: v
             for k, v in metrics.items()
-            if k in {"MAE", "RMSE", "MAPE", "R2", "accuracy"}
+            if k in {"MAE", "RMSE", "MAPE", "R2"}
         },
         "history": [
             {

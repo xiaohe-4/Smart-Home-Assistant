@@ -18,9 +18,15 @@ from app.core.database import Base, SessionLocal, engine  # noqa: E402
 from app.models import (  # noqa: E402
     Anomaly,
     BehaviorRecord,
+    ButlerLog,
+    ButlerMemory,
     Device,
+    DeviceActuator,
     EnergyRecord,
     EnvironmentRecord,
+    HomeFlag,
+    HomeRule,
+    HomeScene,
     Prediction,
     Strategy,
     User,
@@ -53,7 +59,23 @@ def import_all() -> None:
 
     db = SessionLocal()
     try:
-        for model in (Anomaly, Prediction, Strategy, EnergyRecord, EnvironmentRecord, BehaviorRecord, WeatherRecord, Device, User):
+        for model in (
+            HomeFlag,
+            HomeRule,
+            ButlerLog,
+            ButlerMemory,
+            HomeScene,
+            DeviceActuator,
+            Anomaly,
+            Prediction,
+            Strategy,
+            EnergyRecord,
+            EnvironmentRecord,
+            BehaviorRecord,
+            WeatherRecord,
+            Device,
+            User,
+        ):
             db.execute(delete(model))
         db.commit()
 
@@ -86,3 +108,6 @@ def import_all() -> None:
 if __name__ == "__main__":
     reset_tables()
     import_all()
+    import subprocess
+
+    subprocess.check_call([sys.executable, str(PROJECT_ROOT / "scripts" / "import_real_home.py")], cwd=PROJECT_ROOT)

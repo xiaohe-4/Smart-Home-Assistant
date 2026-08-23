@@ -29,6 +29,8 @@ FEATURE_COLUMNS = [
     "is_weekend",
 ]
 
+DEGRADED_FEATURE_COLUMNS = [c for c in FEATURE_COLUMNS if c not in {"temperature", "humidity", "occupancy"}]
+
 
 def hour_block_energy(power_w: float, minutes: int = INTERVAL_MINUTES) -> float:
     return power_w / 1000.0 * (minutes / 60.0)
@@ -74,8 +76,8 @@ def build_hourly_frame(
 
     frame = hourly.merge(env_hourly, on="timestamp", how="left").merge(occ, on="timestamp", how="left")
     frame = frame.sort_values("timestamp").reset_index(drop=True)
-    frame["temperature"] = frame["temperature"].ffill().bfill()
-    frame["humidity"] = frame["humidity"].ffill().bfill()
+    frame["temperature"] = frame["temperature"].ffill().bfill().fillna(26.0)
+    frame["humidity"] = frame["humidity"].ffill().bfill().fillna(55.0)
     frame["occupancy"] = frame["occupancy"].ffill().bfill().fillna(0)
     frame["hour"] = frame["timestamp"].dt.hour
     frame["weekday"] = frame["timestamp"].dt.weekday
@@ -109,7 +111,6 @@ def regression_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, floa
         "RMSE": round(rmse, 4),
         "MAPE": round(mape, 4),
         "R2": round(r2, 4),
-        "accuracy": round(max(0.0, 100.0 - mape), 2),
     }
 
 

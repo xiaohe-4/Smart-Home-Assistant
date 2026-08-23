@@ -14,7 +14,7 @@ import PriceClock from "../components/PriceClock";
 import TimeScrubber from "../components/TimeScrubber";
 import TonightBoard from "../components/TonightBoard";
 import { chartBase } from "../utils/chart";
-import { anomalyTypeLabel, formatPercent, severityColor } from "../utils/format";
+import { anomalyTypeLabel, severityColor } from "../utils/format";
 import type { AnomalyItem, InsightsPayload, LifeOs, PredictionResult, SourceMap } from "../types";
 
 const COMMANDS = [
@@ -164,26 +164,52 @@ export default function Dashboard() {
   };
 
   return (
-    <div>
+    <div className="page-shell">
       <div className="hero-banner">
-        <div>
-          <div className="hero-kicker">多模态家庭能源智能决策系统</div>
-          <h1 className="page-title" style={{ color: "#fff", marginBottom: 8 }}>从监测，到诊断，再到可执行决策</h1>
-          <p className="hero-copy">拖动或回放时间轴，KPI、户型和调度建议会跟着真实负荷一起变。</p>
+        <div className="hero-copy-wrap">
+          <div className="hero-kicker">智家能 · 今晚该关什么</div>
+          <h1 className="hero-title">给家庭一张「该关什么」的执行单</h1>
+          <p className="hero-copy">电表只告诉你这个月多少度。这里回答：为什么贵、哪笔是浪费、今晚关哪一档。</p>
+          <div className="hero-actions">
+            <button className="tonight-cta" onClick={() => { sessionStorage.setItem("se-autosim", "1"); nav("/strategy"); window.dispatchEvent(new Event("se-autosim")); }}>今晚怎么做</button>
+            <button className="hero-ghost" onClick={() => nav("/anomaly")}>看 03:17 异常</button>
+          </div>
         </div>
-        <div className="hero-qs">
-          {(showcase?.questions || []).map((item) => (
-            <div key={item.q} className="hero-q">
-              <b>{item.q}</b>
-              <div>{item.a}</div>
-            </div>
-          ))}
+        <div className="hero-stats">
+          <div className="hero-stat">
+            <span>今日用电</span>
+            <b>{(now?.energy_so_far ?? data?.stats.today_energy ?? 0).toFixed(2)}<em>kWh</em></b>
+          </div>
+          <div className="hero-stat">
+            <span>截至此时电费</span>
+            <b>{now?.cost_so_far ?? data?.tou.total_cost ?? 0}<em>元</em></b>
+          </div>
+          <div className="hero-stat">
+            <span>第一耗电设备</span>
+            <b className="hero-device">{data?.stats.main_device || "空调"}<em>{data?.stats.main_device_share ?? 0}%</em></b>
+          </div>
         </div>
       </div>
 
-      <HighlightBar items={showcase?.highlights || []} />
-      {sources ? <ModalityStrip items={sources.modalities} percent={sources.alignment.percent} /> : null}
-      {life ? <div style={{ margin: "12px 0" }}><PriceClock clock={life.clock} /></div> : null}
+      {now?.alert ? (
+        <div className="alert-strip">检测到 {now.label} 异常窗口：热水器非常规启动，可到异常页查看规则归因。</div>
+      ) : null}
+
+      <div className="replay-block">
+        <ChartCard title="今日功率 · 实际 / 优化 / 占用" loading={loading} empty={!timeline.length} option={lineOption} height={300} extra="橙色带是高峰" />
+        <Card className="scrubber-card">
+          <TimeScrubber frames={replay} hour={hour} onChange={setHour} />
+        </Card>
+      </div>
+
+      <div className="kpi-row">
+        <KpiCard label="能源评分" value={data?.energy_score.energy_score ?? 0} suffix="/100" hint={`节能潜力 ${data?.saving_potential ?? 0}%`} tone="cyan" icon={<DashboardOutlined />} />
+        <KpiCard label="当前功率" value={((now?.power ?? data?.twin.current_power ?? 0) / 1000).toFixed(2)} suffix="kW" hint={`${now?.occupancy ?? data?.twin.occupancy ?? 0} 人在家 · ${now?.temperature ?? data?.twin.indoor_temp ?? "--"}℃`} tone="rose" icon={<AlertOutlined />} />
+        <KpiCard label="夜间用电" value={showcase?.equivalents.night_kwh ?? 0} suffix="kWh" hint={`低占用浪费 ${showcase?.equivalents.away_kwh ?? 0} kWh`} icon={<ThunderboltOutlined />} />
+        <KpiCard label="近 30 日对标" value={bench?.percentile ?? "--"} suffix={bench ? "百分位" : ""} hint={bench ? `今日 ${bench.today_kwh} kWh ${bench.label}` : `碳排 ${showcase?.equivalents.tree_days ?? 0} 棵树·日`} tone="gold" icon={<CloudOutlined />} />
+      </div>
+
+      {life ? <PriceClock clock={life.clock} /> : null}
       {life?.demand ? (
         <DemandBanner
           demand={life.demand}
@@ -191,25 +217,8 @@ export default function Dashboard() {
           onDecline={() => void lifeApi.demand("decline").then(setLife)}
         />
       ) : null}
-
-      {now?.alert ? (
-        <div className="alert-strip">检测到 {now.label} 异常窗口：热水器非常规启动，可到异常页查看规则归因。</div>
-      ) : null}
-
-      <div className="two-col" style={{ gridTemplateColumns: "repeat(4, 1fr)", margin: "16px 0" }}>
-        <KpiCard label="截至此时用电" value={(now?.energy_so_far ?? data?.stats.today_energy ?? 0).toFixed(2)} suffix="kWh" hint={`全天 ${data?.stats.today_energy ?? 0} kWh · 较昨日 ${formatPercent(data?.profile.compared_yesterday_percent)}`} icon={<ThunderboltOutlined />} />
-        <KpiCard label="能源评分" value={data?.energy_score.energy_score ?? 0} suffix="/100" hint={`节能潜力 ${data?.saving_potential ?? 0}%`} tone="cyan" icon={<DashboardOutlined />} />
-        <KpiCard label="截至此时电费" value={now?.cost_so_far ?? data?.tou.total_cost ?? 0} suffix="元" hint={`碳排 ${now?.carbon_so_far ?? data?.carbon_kg ?? 0} kg · 全天 ${data?.tou.total_cost ?? 0} 元`} tone="gold" icon={<CloudOutlined />} />
-        <KpiCard label="当前功率" value={((now?.power ?? data?.twin.current_power ?? 0) / 1000).toFixed(2)} suffix="kW" hint={`${now?.occupancy ?? data?.twin.occupancy ?? 0} 人在家 · ${now?.temperature ?? data?.twin.indoor_temp ?? "--"}℃`} tone="rose" icon={<AlertOutlined />} />
-      </div>
-
-      <div className="eq-row">
-        <div>夜间用电 {showcase?.equivalents.night_kwh ?? 0} kWh</div>
-        <div>低占用浪费 {showcase?.equivalents.away_kwh ?? 0} kWh</div>
-        <div>
-          {bench ? `近 30 日对标：今日 ${bench.today_kwh} kWh ${bench.label}（中位 ${bench.month_median_kwh}，第 ${bench.percentile} 百分位）` : `碳排相当于 ${showcase?.equivalents.tree_days ?? 0} 棵树一天的吸收`}
-        </div>
-      </div>
+      {sources ? <ModalityStrip items={sources.modalities} percent={sources.alignment.percent} /> : null}
+      <HighlightBar items={showcase?.highlights || []} />
 
       <div className="command-row">
         {COMMANDS.map((item) => (
@@ -227,12 +236,6 @@ export default function Dashboard() {
           />
         </Card>
       ) : null}
-
-      <ChartCard title="多模态能耗曲线 · 实际 / 优化 / 占用" loading={loading} empty={!timeline.length} option={lineOption} height={320} />
-      <div style={{ height: 12 }} />
-      <Card>
-        <TimeScrubber frames={replay} hour={hour} onChange={setHour} />
-      </Card>
 
       <div style={{ height: 16 }} />
       <div className="two-col">
@@ -269,7 +272,7 @@ export default function Dashboard() {
 
       <div style={{ height: 16 }} />
       <div className="two-col">
-        <ChartCard title="未来 6 小时预测" extra={pred?.metrics?.accuracy ? `准确率 ${pred.metrics.accuracy}%` : null} loading={loading} empty={!pred?.forecast?.length} option={predOption} />
+        <ChartCard title="未来 6 小时预测" extra={pred?.metrics?.MAPE ? `MAPE ${pred.metrics.MAPE}%` : null} loading={loading} empty={!pred?.forecast?.length} option={predOption} />
         <Card title="AI 决策简报" extra={<a onClick={() => nav("/assistant")}>打开助手</a>}>
           <Typography.Paragraph className="assistant-bubble">{now?.brief || data?.assistant.summary || "正在生成解读..."}</Typography.Paragraph>
           <List

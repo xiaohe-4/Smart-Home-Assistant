@@ -463,6 +463,16 @@ export interface SourceMap {
   portability: Array<{ step: number; title: string; detail: string }>;
   limits: string[];
   honesty: string;
+  compare?: SourceCompare;
+  load_identification_applicable?: boolean;
+}
+
+export interface SourceCompare {
+  boundary: string[];
+  rows: Array<{ item: string; demo: string; real: string }>;
+  demo_today_kwh?: number;
+  real_today_kwh?: number;
+  note: string;
 }
 
 export interface SourceDegrade {
@@ -508,6 +518,7 @@ export interface ModelLab {
     feature_importance: ModelImportance[];
     not_in_model: string[];
     honesty: string;
+    baselines?: { yesterday?: Record<string, number>; weekmean?: Record<string, number> };
   };
   anomaly: {
     available: boolean;
@@ -553,4 +564,6 @@ export interface ModelLab {
     devices: Array<{ device_type: string; label: string; kwh: number; share: number }>;
     honesty: string;
   };
+  compare?: Record<string, unknown>;
+  real?: Record<string, unknown>;
 }

@@ -28,17 +28,18 @@
 在项目根目录执行：
 
 ```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r backend\requirements.txt
+# Windows 若 python 不在 PATH，把下面的 python 换成 py -3
+python -m pip install -r backend\requirements.txt
 
 python scripts\generate_demo_data.py
 python scripts\init_db.py
 python scripts\train_models.py
+# 或一步完成：python scripts\bootstrap.py
 
 # 启动后端（新终端；改 Python 后必须重启，不要只靠 --reload）
 $env:PYTHONPATH = "$pwd\backend;$pwd"
-.\.venv\Scripts\python.exe -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
+python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
+# 也可：.\scripts\start_backend.ps1
 
 # 启动前端（新终端）
 cd frontend
@@ -84,7 +85,6 @@ docs/         比赛与技术文档
 ## 测试
 
 ```powershell
-.\.venv\Scripts\Activate.ps1
 $env:PYTHONPATH = "$pwd\backend;$pwd"
 pytest -q
 ```
@@ -95,6 +95,8 @@ pytest -q
 
 ```powershell
 docker compose up --build
+# 首次启动后初始化演示数据与模型
+docker compose exec backend python scripts/bootstrap.py
 ```
 
 开发阶段优先使用 SQLite + 本地前后端，不必依赖 Docker。

@@ -16,9 +16,13 @@ data/smart_energy.db
 data/*.db
 data/raw/*
 !data/raw/.gitkeep
+!data/raw/real_home_01/
+!data/raw/real_home_01/**
 data/processed/*
 !data/processed/.gitkeep
 !data/processed/experiment_results.json
+!data/processed/real_home_01_summary.json
+!data/processed/real_home_01_labels.csv
 models/*.joblib
 models/*.pkl
 models/*.json

@@ -10,6 +10,7 @@ from ai.forecasting.model import load_model
 def recursive_forecast(hourly_df: pd.DataFrame, model_path, horizon_hours: int = 24) -> pd.DataFrame:
     payload = load_model(model_path)
     model = payload["model"]
+    feature_cols = list(payload.get("features") or FEATURE_COLUMNS)
     history = hourly_df.sort_values("timestamp").copy().reset_index(drop=True)
     if history.empty:
         return pd.DataFrame(columns=["timestamp", "predicted_power"])
@@ -17,9 +18,9 @@ def recursive_forecast(hourly_df: pd.DataFrame, model_path, horizon_hours: int =
     future_rows = []
     work = history.copy()
     last_ts = work["timestamp"].iloc[-1]
-    last_temp = float(work["temperature"].iloc[-1])
-    last_hum = float(work["humidity"].iloc[-1])
-    last_occ = float(work["occupancy"].iloc[-1])
+    last_temp = float(work["temperature"].fillna(26).iloc[-1]) if "temperature" in work else 26.0
+    last_hum = float(work["humidity"].fillna(55).iloc[-1]) if "humidity" in work else 55.0
+    last_occ = float(work["occupancy"].fillna(0).iloc[-1]) if "occupancy" in work else 0.0
 
     for step in range(1, horizon_hours + 1):
         ts = last_ts + timedelta(hours=step)
@@ -40,7 +41,10 @@ def recursive_forecast(hourly_df: pd.DataFrame, model_path, horizon_hours: int =
         }
         tmp = pd.concat([work, pd.DataFrame([row])], ignore_index=True)
         featured = add_lag_features(tmp)
-        features = featured.iloc[[-1]][FEATURE_COLUMNS]
+        for name in feature_cols:
+            if name not in featured.columns:
+                featured[name] = 0.0
+        features = featured.iloc[[-1]][feature_cols]
         pred = float(model.predict(features)[0])
         pred = max(80.0, pred)
         tmp.loc[tmp.index[-1], "power"] = pred

@@ -1,13 +1,44 @@
 {
+  "generated_at": "2026-08-23T17:26:21",
   "forecast": {
-    "MAE": 95.9065,
-    "RMSE": 203.3037,
-    "MAPE": 17.5245,
-    "R2": 0.9525,
-    "accuracy": 82.48,
+    "MAE": 110.7616,
+    "RMSE": 234.5094,
+    "MAPE": 20.3446,
+    "R2": 0.9369,
     "model_name": "XGBoostRegressor",
     "model_version": "v1",
-    "samples": 696
+    "samples": 696,
+    "split": "TimeSeriesSplit(n_splits=3)",
+    "features": [
+      "lag_1",
+      "lag_2",
+      "lag_3",
+      "lag_6",
+      "lag_12",
+      "lag_24",
+      "rolling_mean_1h",
+      "rolling_mean_3h",
+      "rolling_mean_6h",
+      "rolling_mean_24h",
+      "temperature",
+      "humidity",
+      "occupancy",
+      "hour",
+      "weekday",
+      "is_weekend"
+    ],
+    "baseline_yesterday": {
+      "MAE": 171.3337,
+      "RMSE": 373.2743,
+      "MAPE": 23.0051,
+      "R2": 0.6871
+    },
+    "baseline_weekmean": {
+      "MAE": 382.758,
+      "RMSE": 551.8678,
+      "MAPE": 55.3593,
+      "R2": 0.316
+    }
   },
   "anomaly_model": {
     "model_name": "IsolationForest",
@@ -43,5 +74,66 @@
     "anomaly_night_heater": true,
     "top_strategy": "空调温度从 24℃ 调整到 26℃"
   },
-  "generated_at": "2026-08-19T17:13:50"
+  "real": {
+    "forecast": {
+      "MAE": 55.9161,
+      "RMSE": 99.7377,
+      "MAPE": 25.0871,
+      "R2": 0.8922,
+      "model_name": "XGBoostRegressor",
+      "model_version": "v1",
+      "samples": 312,
+      "split": "TimeSeriesSplit(n_splits=3)",
+      "features": [
+        "lag_1",
+        "lag_2",
+        "lag_3",
+        "lag_6",
+        "lag_12",
+        "lag_24",
+        "rolling_mean_1h",
+        "rolling_mean_3h",
+        "rolling_mean_6h",
+        "rolling_mean_24h",
+        "hour",
+        "weekday",
+        "is_weekend"
+      ],
+      "baseline_yesterday": {
+        "MAE": 58.014,
+        "RMSE": 117.3833,
+        "MAPE": 27.7866,
+        "R2": 0.8633
+      },
+      "baseline_weekmean": {
+        "MAE": 43.7568,
+        "RMSE": 75.2862,
+        "MAPE": 23.9471,
+        "R2": 0.9438
+      }
+    },
+    "anomaly_detection": {
+      "precision": 0.25,
+      "recall": 1.0,
+      "f1": 0.4,
+      "labeled": 4,
+      "detected": 16
+    },
+    "load_identification": null,
+    "dropped_features": [
+      "temperature",
+      "humidity",
+      "occupancy"
+    ],
+    "note": "验证户无占用/天气，预测用降级特征；不做负荷识别准确率。"
+  },
+  "compare": {
+    "demo_mape": 20.3446,
+    "real_mape": 25.0871,
+    "demo_r2": 0.9369,
+    "real_r2": 0.8922,
+    "demo_baseline_yesterday": 23.0051,
+    "real_baseline_yesterday": 27.7866,
+    "note": "真实/公开户变差是预期结果，不把仿真 R² 当成真实家庭精度。"
+  }
 }

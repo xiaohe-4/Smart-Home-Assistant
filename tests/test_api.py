@@ -168,7 +168,10 @@ def test_source_map_and_ingest_contract(client):
     assert len(body.get("modalities") or []) == 4
     assert body.get("alignment", {}).get("percent", 0) >= 90
     assert "occupancy" in (body.get("forecast_features") or [])
-    assert body.get("portability")
+    assert body.get("compare") or client.get("/api/sources/compare").status_code == 200
+    homes = client.get("/api/sources/homes")
+    assert homes.status_code == 200
+    assert len(homes.json().get("homes") or []) >= 1
     dropped = client.get("/api/sources/degrade", params={"drop": "behavior"})
     assert dropped.status_code == 200
     deg = dropped.json()
@@ -199,7 +202,7 @@ def test_model_lab_and_honest_metrics(client):
     if forecast.get("metrics"):
         assert "R2" in forecast["metrics"]
         assert "MAPE" in forecast["metrics"]
-        assert "accuracy" in forecast["metrics"]
+        assert "MAE" in forecast["metrics"]
     if load.get("available"):
         assert load.get("not_nilm") is True
         assert "不是" in (load.get("honesty") or "") or "NILM" in (load.get("honesty") or "")

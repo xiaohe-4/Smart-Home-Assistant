@@ -16,5 +16,5 @@ def run(script: str) -> None:
 if __name__ == "__main__":
     run("generate_demo_data.py")
     run("init_db.py")
-    run("train_models.py")
+    run("train_models.py")  # 默认 --dataset both
     print("\nBootstrap 完成。接下来启动后端和前端即可演示。")

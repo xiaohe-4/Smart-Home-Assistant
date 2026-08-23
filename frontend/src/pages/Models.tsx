@@ -52,7 +52,7 @@ export default function Models() {
   return (
     <div>
       <h1 className="page-title">模型实验舱</h1>
-      <p className="page-sub">四组实验的真实落盘指标。准确率怎么算、负荷识别是不是 NILM、异常 F1 为什么只有 0.35，都写在这里。</p>
+      <p className="page-sub">只报 MAE / RMSE / MAPE / R²，并和昨天同时段、近 7 日同时段平均对照。异常 F1=0.35，上线以规则为准。</p>
       <div className="honesty-note">{lab?.honesty || "正在读取 models/metrics.json 与 joblib。"}</div>
       <Row gutter={16} style={{ marginBottom: 16 }}>
         <Col xs={24} md={6}>
@@ -63,8 +63,8 @@ export default function Models() {
         </Col>
         <Col xs={24} md={6}>
           <Card loading={loading}>
-            <Statistic title="预测准确率" value={fc?.metrics?.accuracy ?? 0} precision={2} suffix="%" />
-            <div className="kpi-hint">定义为 100-MAPE，不是分类准确率</div>
+            <Statistic title="昨天同时段 MAPE" value={fc?.baselines?.yesterday?.MAPE ?? 0} precision={2} suffix="%" />
+            <div className="kpi-hint">基线 A · 近 7 日同时段 {fc?.baselines?.weekmean?.MAPE ?? "--"}%</div>
           </Card>
         </Col>
         <Col xs={24} md={6}>

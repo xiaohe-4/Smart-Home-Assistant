@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -359,7 +360,7 @@ def build_comfort(flags: dict[str, str]) -> dict:
 def complete_mission(db: Session, user_id: int, key: str, done: bool = True, execute: bool = False) -> dict:
     keys = {spec["key"] for spec in MISSION_SPECS}
     if key not in keys:
-        return {"ok": False, "detail": "未知任务"}
+        raise HTTPException(status_code=404, detail="未知任务")
     spec = next(s for s in MISSION_SPECS if s["key"] == key)
     if execute and done:
         if spec["kind"] == "schedule":
@@ -395,7 +396,7 @@ def set_demand(db: Session, user_id: int, action: str) -> dict:
 def book_schedule(db: Session, user_id: int, task: str, booked: bool = True) -> dict:
     allowed = {"valley_wash", "heat_water"}
     if task not in allowed:
-        return {"ok": False, "detail": "未知预约"}
+        raise HTTPException(status_code=404, detail="未知预约")
     set_flag(db, user_id, f"schedule:{task}", "booked" if booked else "open", commit=False)
     if task == "valley_wash":
         set_flag(db, user_id, "mission:valley_wash", "done" if booked else "open", commit=False)
@@ -407,7 +408,7 @@ def book_schedule(db: Session, user_id: int, task: str, booked: bool = True) -> 
 
 def set_comfort(db: Session, user_id: int, mode: str, execute: bool = False) -> dict:
     if mode not in COMFORT_MODES:
-        return {"ok": False, "detail": "未知模式"}
+        raise HTTPException(status_code=404, detail="未知模式")
     set_flag(db, user_id, "comfort", mode, commit=True)
     if execute:
         ac = COMFORT_MODES[mode]["ac"]

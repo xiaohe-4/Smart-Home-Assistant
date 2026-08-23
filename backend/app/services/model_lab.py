@@ -49,17 +49,16 @@ LOAD_FEATURE_CN = {
 }
 
 FORECAST_HONESTY = (
-    "XGBoost 在 TimeSeriesSplit 三折上汇总。准确率定义为 100-MAPE，不是分类准确率。"
-    "主特征 16 列含占用和室内温湿度，不含室外天气。"
+    "XGBoost 在 TimeSeriesSplit 三折上汇总，只报 MAE / RMSE / MAPE / R²。"
+    "对照基线是「昨天同时段」和「近 7 天同时段平均」。主特征含占用和室内温湿度，不含室外天气。"
 )
 LOAD_HONESTY = (
-    "RandomForest 做的是「有设备分路标签的 1 小时功率窗分类」，测试集 Accuracy 0.9513。"
-    "这不是总表盲拆 NILM。页面上的空调/热水器占比来自分路电表汇总。"
-    "下方推理示例与训练日重叠，只证明链路可跑，不能当第二套测试集。"
+    "有分路标签的 1 小时窗分类，Accuracy 0.95；设备占比来自分路电量求和，不是总表 NILM。"
+    "验证户无分路标签时本模块显示不适用。"
 )
 ANOMALY_HONESTY = (
-    "Isolation Forest 给异常分，规则引擎给时段和设备。对照 13 个植入点，检出 27 条，"
-    "Precision 0.2593 / Recall 0.5385 / F1 0.35。请主动展示，不要把检出条数当成准确率。"
+    "上线主规则（凌晨用水电、无人仍高功率、连续照明），Isolation Forest 只打分。"
+    "对照 13 个植入点，检出 27 条，F1=0.35。所以结论以规则为准，模型只辅助。"
 )
 
 
@@ -113,8 +112,12 @@ def _forecast_block(raw: dict) -> dict:
         "samples": metrics.get("samples"),
         "metrics": {
             k: metrics[k]
-            for k in ("MAE", "RMSE", "MAPE", "R2", "accuracy")
+            for k in ("MAE", "RMSE", "MAPE", "R2")
             if k in metrics
+        },
+        "baselines": {
+            "yesterday": metrics.get("baseline_yesterday") or {},
+            "weekmean": metrics.get("baseline_weekmean") or {},
         },
         "features": FEATURE_COLUMNS,
         "feature_importance": _importance(payload, FEATURE_CN),
@@ -260,11 +263,9 @@ def speech_metrics() -> str:
         return "模型指标文件尚未生成。请先运行 scripts/train_models.py，不要口头编造准确率。"
     return (
         f"预测是 {fc.get('model_name', 'XGBoost')}，R² {fc.get('R2')}，MAPE {fc.get('MAPE')}%，"
-        f"准确率按 100-MAPE 计为 {fc.get('accuracy')}%，MAE {fc.get('MAE')} W。"
-        f"负荷识别测试集 Accuracy {load.get('accuracy')}、macro-F1 {load.get('macro_f1')}，"
-        f"这是有分路标签的窗口分类，不是总表盲拆 NILM。"
-        f"异常检测 Precision {det.get('precision')}、Recall {det.get('recall')}、F1 {det.get('f1')}，"
-        f"标注 {det.get('labeled')} 个点、检出 {det.get('detected')} 条，请把精确率和召回一起看。"
+        f"MAE {fc.get('MAE')} W，样本 {fc.get('samples')}，TimeSeriesSplit 三折。"
+        f"负荷识别测试集 Accuracy {load.get('accuracy')}，有分路标签的窗口分类，不是总表盲拆 NILM。"
+        f"异常 F1 {det.get('f1')}，上线以规则为准，模型只打分。"
     )
 
 
@@ -275,6 +276,7 @@ def get_model_lab(db: Session, user_id: int | None = None) -> dict:
     anomaly = _anomaly_block(raw)
     load = _load_block(raw, db, uid)
     strategy = _strategy_block(raw)
+    real = raw.get("real") or {}
     return {
         "generated_at": raw.get("generated_at"),
         "source": "models/metrics.json + joblib",
@@ -282,5 +284,7 @@ def get_model_lab(db: Session, user_id: int | None = None) -> dict:
         "anomaly": anomaly,
         "load": load,
         "strategy": strategy,
-        "honesty": "所有数字来自训练脚本落盘文件或当场加载的 joblib，不由大模型计算。",
+        "real": real,
+        "compare": raw.get("compare") or {},
+        "honesty": "所有数字来自训练脚本落盘文件。不用 100-MAPE 当准确率。验证户变差也写进对照表。",
     }

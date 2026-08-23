@@ -1,4 +1,5 @@
 import pandas as pd
+from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -204,7 +205,7 @@ def seed_rules(db: Session, user_id: int) -> dict[str, bool]:
 def toggle_rule(db: Session, user_id: int, key: str, armed: bool) -> dict:
     keys = {spec["key"] for spec in DEFAULT_RULES}
     if key not in keys:
-        return {"ok": False, "detail": "未知规则"}
+        raise HTTPException(status_code=404, detail="未知规则")
     row = db.scalar(select(HomeRule).where(HomeRule.user_id == user_id, HomeRule.rule_key == key))
     if row is None:
         row = HomeRule(user_id=user_id, rule_key=key, armed=armed)

@@ -23,6 +23,7 @@ export default function Life() {
   const [degree, setDegree] = useState(26);
 
   const apply = (next: LifeOs) => {
+    if (!next?.clock) return;
     setData(next);
     window.dispatchEvent(new Event("se-home-update"));
   };

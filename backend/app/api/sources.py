@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.core.database import get_db
+from app.services.home_service import compare_homes, list_homes
 from app.services.source_service import degrade_report, get_source_map, validate_ingest
 
 router = APIRouter(prefix="/api/sources", tags=["sources"])
@@ -18,6 +19,16 @@ class IngestBody(BaseModel):
 @router.get("")
 def sources(user_id: int = Query(default=settings.demo_user_id), db: Session = Depends(get_db)):
     return get_source_map(db, user_id)
+
+
+@router.get("/homes")
+def homes(db: Session = Depends(get_db)):
+    return {"homes": list_homes(db)}
+
+
+@router.get("/compare")
+def sources_compare(db: Session = Depends(get_db)):
+    return compare_homes(db)
 
 
 @router.get("/degrade")

@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from ai.optimization.strategy_engine import device_saving_table
 from ai.profiling.profile import energy_efficiency_score, portrait_summary
-from app.core.config import PROJECT_ROOT
+from app.core.config import PROJECT_ROOT, get_settings
 from app.models import Anomaly, User
 from app.services.energy_service import today_stats
 
@@ -30,8 +30,8 @@ def get_profile(db: Session, user_id: int) -> dict:
         "household_name": user.name if user else "演示家庭",
         "household_size": user.household_size if user else 4,
         "home_type": user.home_type if user else "住宅",
-        "city": "成都",
-        "season": "夏季",
+        "city": get_settings().city,
+        "season": get_settings().season,
         **portrait,
     }
 

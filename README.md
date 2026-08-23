@@ -1,6 +1,8 @@
-# 智家能：家庭多模态能源智能决策系统
+# 智家能：今晚该关什么
 
-面向普通家庭的多模态能源智能决策系统。系统融合家庭电力、环境、占用行为和天气四路时序，完成能耗监测、负荷预测、异常识别、能源画像和节能策略，并由管家宝强把建议落到开关和设定温度。
+给家庭今晚一张「该关什么」的执行单，并能模拟执行后的电费变化。演示户是仿真（稳定打出 03:17）；验证户走公开负荷风格/真实导出，缺模态已降级。
+
+三句边界：演示含仿真；负荷识别不是 NILM；异常 F1=0.35，上线以规则为准。
 
 演示家庭：成都四口之家 · 夏季 · 已连续运行 30 天 · 演示时刻 2026-08-19 20:30。
 
@@ -28,17 +30,18 @@
 在项目根目录执行：
 
 ```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r backend\requirements.txt
+# Windows 若 python 不在 PATH，把下面的 python 换成 py -3
+python -m pip install -r backend\requirements.txt
 
 python scripts\generate_demo_data.py
 python scripts\init_db.py
 python scripts\train_models.py
+# 或一步完成：python scripts\bootstrap.py
 
 # 启动后端（新终端；改 Python 后必须重启，不要只靠 --reload）
 $env:PYTHONPATH = "$pwd\backend;$pwd"
-.\.venv\Scripts\python.exe -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
+python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
+# 也可：.\scripts\start_backend.ps1
 
 # 启动前端（新终端）
 cd frontend
@@ -63,8 +66,8 @@ npm run dev
 
 | 实验 | 指标 |
 | --- | --- |
-| 能耗预测 XGBoost | MAE 95.91 W · RMSE 203.30 W · MAPE 17.52% · R² 0.9525 · 准确率 82.48%（=100-MAPE） |
-| 异常检测 IF+规则 | Precision 0.2593 · Recall 0.5385 · F1 0.35 · 标注 13 / 检出 27 |
+| 能耗预测 XGBoost（演示户） | 以 `models/metrics.json` 为准；只报 MAE/RMSE/MAPE/R²，并对照昨天同时段与近 7 日同时段平均 |
+| 异常检测 规则主+IF 辅 | Precision 0.2593 · Recall 0.5385 · F1 0.35 · 标注 13 / 检出 27 |
 | 负荷识别 RF | Accuracy 0.9513 · macro-F1 0.9515（有分路标签的 1 小时窗分类，不是总表 NILM） |
 | 演示日用电 | 18.73 kWh；空调 41.3%、热水器 22.3%、冰箱 11.8% |
 
@@ -84,7 +87,6 @@ docs/         比赛与技术文档
 ## 测试
 
 ```powershell
-.\.venv\Scripts\Activate.ps1
 $env:PYTHONPATH = "$pwd\backend;$pwd"
 pytest -q
 ```
@@ -95,6 +97,8 @@ pytest -q
 
 ```powershell
 docker compose up --build
+# 首次启动后初始化演示数据与模型
+docker compose exec backend python scripts/bootstrap.py
 ```
 
 开发阶段优先使用 SQLite + 本地前后端，不必依赖 Docker。

@@ -7,6 +7,7 @@ from ai.forecasting.features import FEATURE_COLUMNS
 from app.core.config import get_settings
 from app.models import BehaviorRecord, Device, EnergyRecord, EnvironmentRecord, User, WeatherRecord
 from app.services.energy_service import day_range, demo_day
+from app.services.home_service import compare_homes, list_homes
 from app.services.insight_service import correlation_report, load_today_frame
 
 settings = get_settings()
@@ -114,7 +115,8 @@ def alignment_report(db: Session, user_id: int) -> dict:
     env = _unique_ts(db, EnvironmentRecord, user_id, start, end)
     beh = _unique_ts(db, BehaviorRecord, user_id, start, end)
     weather = _unique_ts(db, WeatherRecord, None, start, end)
-    aligned = energy & env & beh & weather
+    degraded = user_id == settings.real_user_id
+    aligned = energy if degraded else energy & env & beh & weather
     interval = 5
     ordered = sorted(energy)
     if len(ordered) >= 2:
@@ -132,7 +134,12 @@ def alignment_report(db: Session, user_id: int) -> dict:
             "behavior": len(energy - beh),
             "weather": len(energy - weather),
         },
-        "note": "对齐按演示日 5 分钟时间戳交集计算。四路都有点，预测和环境解释才能同时成立。",
+        "note": (
+            "验证户无占用/天气，按缺模态降级，只要求电力时序对齐。"
+            if degraded
+            else "对齐按演示日 5 分钟时间戳交集计算。四路都有点，预测和环境解释才能同时成立。"
+        ),
+        "degraded": degraded,
     }
 
 
@@ -205,7 +212,10 @@ def get_source_map(db: Session, user_id: int) -> dict:
             "占用/活动在演示中由作息规则生成，不是视频识别。",
             "负荷分解来自分路计量；只有总电表时需要另接 NILM。",
         ],
-        "honesty": "多模态不是图像或语音。演示数据是高质量仿真灌进标准表，程序跑的是库，不是每次现场编数。",
+        "homes": list_homes(db),
+        "compare": compare_homes(db),
+        "load_identification_applicable": user_id != settings.real_user_id,
+        "honesty": "演示户是仿真，为了稳定打出 03:17。验证户是公开负荷风格/真实导出，缺模态已降级。不把仿真 R² 当成真实家庭精度。",
     }
 
 

@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///data/smart_energy.db"
 
     demo_user_id: int = 1
+    real_user_id: int = 2
     demo_date: str = "2026-08-19"
     random_seed: int = 42
     city: str = "成都"

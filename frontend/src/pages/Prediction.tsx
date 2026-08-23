@@ -82,7 +82,7 @@ export default function Prediction() {
     <div>
       <h1 className="page-title">能耗预测</h1>
       <p className="page-sub">
-        绿色带宽按真实 RMSE 绘制。准确率是 100-MAPE，不是分类正确率。
+        绿色带宽按真实 RMSE 绘制。只报 MAE / RMSE / MAPE / R²，TimeSeriesSplit 切分，不用 100-MAPE 当准确率。
         <a style={{ marginLeft: 8 }} onClick={() => nav("/models")}>打开模型实验舱</a>
       </p>
       <Radio.Group value={hours} onChange={(e) => setHours(e.target.value)} style={{ marginBottom: 16 }}>
@@ -95,7 +95,7 @@ export default function Prediction() {
         <Col xs={12} md={4}><Card loading={loading}><Statistic title="RMSE" value={rmse} precision={2} suffix="W" /></Card></Col>
         <Col xs={12} md={4}><Card loading={loading}><Statistic title="MAPE" value={data?.metrics?.MAPE ?? 0} precision={2} suffix="%" /></Card></Col>
         <Col xs={12} md={4}><Card loading={loading}><Statistic title="R²" value={data?.metrics?.R2 ?? 0} precision={4} /></Card></Col>
-        <Col xs={12} md={4}><Card loading={loading}><Statistic title="准确率" value={data?.metrics?.accuracy ?? 0} precision={2} suffix="%" /></Card></Col>
+        <Col xs={12} md={4}><Card loading={loading}><Statistic title="样本" value={lab?.forecast.samples ?? 0} /></Card></Col>
       </Row>
       <div className="honesty-note">{lab?.forecast.honesty || "指标来自 models/metrics.json，不编造。"}</div>
       <ChartCard title="历史真实值 + 预测 + RMSE 置信区间" loading={loading} empty={!forecast.length} option={option} height={420} />

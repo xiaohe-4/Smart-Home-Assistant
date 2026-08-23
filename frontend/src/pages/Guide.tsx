@@ -2,11 +2,9 @@ import { Button, Card, Collapse, Steps, Tag, Typography } from "antd";
 import { useNavigate } from "react-router-dom";
 
 const START = [
-  { title: "看今天花了多少", desc: "总览上的用电、电费、碳排和能源评分，就是这户今天的账单摘要。", path: "/", label: "打开总览" },
-  { title: "拖时间轴回放", desc: "把滑杆拖到 03:00 看凌晨，再拖回 20:30 看晚高峰。户型和功率会跟着走。", path: "/", label: "去回放" },
-  { title: "看谁在耗电", desc: "能耗页按设备拆开。空调大约四成，橙色阴影是高峰电价。", path: "/energy", label: "看能耗" },
-  { title: "看异常原因", desc: "点 03:17 那条热水器记录，右侧是规则说明，不是黑盒报警。", path: "/anomaly", label: "看异常" },
-  { title: "让管家去办", desc: "对右下角宝强说「执行今晚节能方案」，或先点「汇报一下」再「点头」。", path: "/butler", label: "叫管家" },
+  { title: "幕 1 为何贵", desc: "总览回放今日，看到 20:30。今日电量、电费、第一耗电设备，再点「今晚怎么做」。", path: "/", label: "打开总览" },
+  { title: "幕 2 哪笔浪费", desc: "异常解释器看 03:17 热水器。主动说 F1=0.35，结论以规则为准。", path: "/anomaly", label: "看异常" },
+  { title: "幕 3 今晚关哪一档", desc: "执行空调 24→26℃，看电费对比；管家点头执行，关冰箱会被拒绝。", path: "/strategy", label: "去执行" },
 ];
 
 const PAGES = [

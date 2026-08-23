@@ -84,20 +84,69 @@ html, body, #root {
   background: linear-gradient(180deg, #08241c, #0f3d2e) !important;
 }
 
+.app-sider .ant-layout-sider-children {
+  display: flex;
+  flex-direction: column;
+}
+
 .app-sider .ant-menu {
   background: transparent;
   color: #d7ece2;
+  padding: 0 8px 16px;
 }
 
+.sider-brand {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 22px 16px 16px;
+}
+
+.sider-name { color: #fff; font-weight: 800; font-size: 18px; line-height: 1.2; }
+.sider-tag { color: #9eccb8; font-size: 12px; margin-top: 2px; }
+
 .app-header {
-  background: rgba(255,255,255,0.84) !important;
-  backdrop-filter: blur(12px);
+  background: rgba(255,255,255,0.88) !important;
+  backdrop-filter: blur(14px);
   border-bottom: 1px solid rgba(15, 61, 46, 0.06);
-  padding: 0 24px !important;
+  padding: 0 20px !important;
+  height: auto !important;
+  line-height: 1.3 !important;
+  min-height: 64px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
 }
+
+.header-left, .header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.header-chip {
+  font-size: 12px;
+  color: #166534;
+  background: #dcfce7;
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+.header-date {
+  font-size: 12px;
+  color: var(--se-muted);
+}
+
+.home-switch { min-width: 168px; }
+
+.app-content {
+  margin: 20px;
+}
+
+.app-content > *,
+.page-shell { max-width: 1320px; }
 
 .status-dot {
   width: 8px;
@@ -178,27 +227,84 @@ html, body, #root {
 }
 
 @media (max-width: 992px) {
-  .two-col, .device-grid, .highlight-bar, .hero-banner, .story-line, .floorplan { grid-template-columns: 1fr; }
+  .two-col, .device-grid, .highlight-bar, .hero-banner, .story-line, .floorplan, .kpi-row { grid-template-columns: 1fr; }
+  .app-header { padding: 10px 16px !important; flex-wrap: wrap; }
+  .hero-title { font-size: 22px; }
 }
 
 .hero-banner {
   display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: 18px;
-  padding: 22px 24px;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 22px;
+  padding: 26px 28px;
   margin-bottom: 16px;
-  border-radius: 18px;
+  border-radius: 20px;
   background:
-    linear-gradient(135deg, rgba(8, 36, 28, 0.96), rgba(22, 101, 52, 0.88)),
-    radial-gradient(500px 180px at 90% 10%, rgba(52, 211, 153, 0.35), transparent);
+    linear-gradient(135deg, rgba(8, 36, 28, 0.97), rgba(21, 128, 61, 0.86)),
+    radial-gradient(520px 200px at 92% 8%, rgba(52, 211, 153, 0.32), transparent);
   color: #ecfdf3;
   box-shadow: 0 18px 40px rgba(8, 36, 28, 0.18);
 }
 
-.hero-kicker { font-size: 12px; letter-spacing: 1px; color: #86efac; margin-bottom: 6px; }
-.hero-copy { color: #ccebd8; margin: 0; }
-.hero-qs { display: grid; gap: 8px; }
-.hero-q { background: rgba(255,255,255,0.08); border: 1px solid rgba(187, 247, 208, 0.2); border-radius: 12px; padding: 10px 12px; font-size: 13px; }
+.hero-title {
+  margin: 0 0 8px;
+  color: #fff;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  line-height: 1.25;
+}
+
+.hero-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+
+.tonight-cta, .hero-ghost {
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 18px;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.tonight-cta { background: #facc15; color: #14532d; }
+.tonight-cta:hover { background: #fde047; }
+.hero-ghost {
+  background: transparent;
+  color: #bbf7d0;
+  outline: 1px solid rgba(187, 247, 208, 0.35);
+}
+.hero-ghost:hover { background: rgba(255,255,255,0.08); }
+
+.hero-stats { display: grid; gap: 10px; }
+.hero-stat {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(187, 247, 208, 0.18);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+.hero-stat span { display: block; font-size: 12px; color: #bbf7d0; margin-bottom: 4px; }
+.hero-stat b { font-size: 26px; line-height: 1.1; font-weight: 800; }
+.hero-stat em, .hero-device em { font-style: normal; margin-left: 6px; font-size: 13px; font-weight: 600; color: #bbf7d0; }
+.hero-device { font-size: 22px !important; }
+
+.compare-table { width: 100%; border-collapse: collapse; }
+.compare-table th, .compare-table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #dbe8e0; font-size: 13px; }
+.compare-table th { color: #166534; background: #f0fdf4; }
+.compare-table tr:last-child td { border-bottom: 0; }
+
+.hero-kicker { font-size: 12px; letter-spacing: 1.4px; color: #86efac; margin-bottom: 8px; text-transform: uppercase; }
+.hero-copy { color: #ccebd8; margin: 0; line-height: 1.55; max-width: 36em; }
+
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.replay-block { display: grid; gap: 0; margin-bottom: 4px; }
+.replay-block .ant-card { border-radius: 16px; }
+.scrubber-card { margin-top: -2px; border-top: 0 !important; border-radius: 0 0 16px 16px !important; }
+.replay-block .ant-card:first-child { border-radius: 16px 16px 0 0 !important; }
 
 .highlight-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 .highlight-card { background: #fff; border-radius: 14px !important; box-shadow: 0 8px 24px rgba(15,61,46,0.06); }
@@ -314,15 +420,31 @@ html.dark .honesty-note {
   color: #c5ddd2;
   border-color: #1f4d3c;
 }
+html.dark .app-header {
+  background: rgba(7, 21, 16, 0.88) !important;
+  border-bottom-color: #1f3d32;
+}
+html.dark .header-chip { background: #123226; color: #86efac; }
+html.dark .header-date { color: #9cb3a8; }
 html.dark .live-pill { background: #123226; color: #86efac; }
 html.dark .app-header .ant-typography { color: #e7f6ee; }
+html.dark .compare-table th { background: #123226; color: #bbf7d0; }
+html.dark .compare-table th, html.dark .compare-table td { border-bottom-color: #1f3d32; }
+html.dark .kpi-card { background: #0d241c; }
 html.dark .dispatch-item.now { background: #123226; }
+
+.page-shell .ant-card {
+  box-shadow: 0 8px 24px rgba(15, 61, 46, 0.05);
+}
 
 .tour-fab {
   position: fixed;
   right: 24px;
   bottom: 24px;
   z-index: 30;
+  height: auto !important;
+  padding: 8px 14px !important;
+  box-shadow: 0 10px 24px rgba(8, 36, 28, 0.2);
 }
 .butler-fab {
   position: fixed;

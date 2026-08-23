@@ -45,10 +45,35 @@ export default function Sources() {
     [data],
   );
 
+  const compare = data?.compare;
+
   return (
     <div>
-      <h1 className="page-title">多模态数据来源与移植</h1>
+      <h1 className="page-title">仿真户 vs 验证户</h1>
       <p className="page-sub">{data?.honesty}</p>
+      <div className="honesty-note">{compare?.note || "演示户保现场；验证户证明能灌真表/公开集。"}</div>
+      {compare?.boundary?.length ? (
+        <p className="page-sub">三句边界：{compare.boundary.join(" ")}</p>
+      ) : null}
+      <Card title="对照表" style={{ margin: "12px 0 16px" }} loading={loading}>
+        <table className="compare-table">
+          <thead>
+            <tr><th>项目</th><th>仿真户</th><th>验证户</th></tr>
+          </thead>
+          <tbody>
+            {(compare?.rows || []).map((row) => (
+              <tr key={row.item}>
+                <td>{row.item}</td>
+                <td>{row.demo}</td>
+                <td>{row.real}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Card>
+      {data?.load_identification_applicable === false ? (
+        <div className="honesty-note">本户仅总功率/插座分路，不做家电分类，负荷识别模块不适用。</div>
+      ) : null}
       {data ? <ModalityStrip items={data.modalities} percent={data.alignment.percent} clickable={false} /> : null}
 
       <Row gutter={16} style={{ margin: "16px 0" }}>

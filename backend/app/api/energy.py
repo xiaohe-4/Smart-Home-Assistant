@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
@@ -49,7 +49,10 @@ def energy_hourly(
     user_id: int = Query(default=settings.demo_user_id),
     db: Session = Depends(get_db),
 ):
-    day = datetime.strptime(date, "%Y-%m-%d") if date else demo_day()
+    try:
+        day = datetime.strptime(date, "%Y-%m-%d") if date else demo_day()
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail="日期格式应为 YYYY-MM-DD") from exc
     start, end = day_range(day)
     points = query_series(db, user_id, start, end, freq="h")
     return {"date": day.strftime("%Y-%m-%d"), "points": points}

@@ -304,6 +304,15 @@ def month_heatmap(db: Session, user_id: int) -> list[dict]:
     ]
 
 
+def _forecast_faq(forecast: dict) -> str:
+    r2 = forecast.get("R2")
+    mape = forecast.get("MAPE")
+    if r2 is None or mape is None:
+        return "预测指标见模型实验舱。负荷识别不是总表 NILM。"
+    mape_text = f"{mape:.2f}" if isinstance(mape, (int, float)) else str(mape)
+    return f"R² {r2}，MAPE {mape_text}%。只报 MAE/RMSE/MAPE/R²，不用 100-MAPE 当准确率。负荷识别不是总表 NILM。"
+
+
 def build_showcase(
     db: Session,
     user_id: int,
@@ -392,7 +401,7 @@ def build_showcase(
             {"q": "为什么耗电？", "a": f"主要来自{stats['main_device']}，占 {stats['main_device_share']:.1f}%。"},
             {"q": "哪里浪费？", "a": f"低占用仍用 {away_kwh:.2f} kWh，凌晨浪费 {night_kwh:.2f} kWh。"},
             {"q": "怎么节能？", "a": "先把空调 24℃ 调到 26℃，再关掉热水器夜间加热。"},
-            {"q": "预测准不准？", "a": "R² 0.9525，MAPE 17.52%，准确率按 100-MAPE 计。负荷识别不是总表 NILM。"},
+            {"q": "预测准不准？", "a": _forecast_faq(forecast)},
         ],
         "replay": replay,
         "dispatch": dispatch_plan(replay),

@@ -48,9 +48,10 @@ export default function Anomaly() {
 
   return (
     <div>
-      <h1 className="page-title">异常检测</h1>
+      <h1 className="page-title">异常解释器</h1>
       <p className="page-sub">
-        Isolation Forest 给出异常分，规则引擎给出时段和设备。F1 只有 0.35，答辩时请主动说。
+        主：规则（凌晨用水电、无人仍高功率、连续照明）。辅：Isolation Forest 只打分。
+        模型 F1 只有 0.35，所以结论以规则为准。
         <a style={{ marginLeft: 8 }} onClick={() => nav("/models")}>打开模型实验舱</a>
       </p>
       <div className="honesty-note">{anom?.honesty}</div>

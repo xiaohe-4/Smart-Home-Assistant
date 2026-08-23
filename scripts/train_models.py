@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from datetime import datetime
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 from sklearn.metrics import f1_score, precision_score, recall_score
 
@@ -19,7 +19,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from ai.anomaly_detection.detector import score_frame  # noqa: E402
 from ai.anomaly_detection.train import prepare_anomaly_frame, train_anomaly_model  # noqa: E402
-from ai.forecasting.features import build_hourly_frame  # noqa: E402
+from ai.forecasting.features import DEGRADED_FEATURE_COLUMNS, build_hourly_frame  # noqa: E402
 from ai.forecasting.predict import recursive_forecast  # noqa: E402
 from ai.forecasting.train import train_forecast_model  # noqa: E402
 from ai.load_identification.classifier import train_load_classifier  # noqa: E402
@@ -41,6 +41,9 @@ DEVICE_CN = {
     6: "全屋照明",
     7: "书房电脑",
     8: "其他插座负荷",
+    101: "空调插座",
+    102: "热水壶",
+    103: "其他插座",
 }
 
 
@@ -164,17 +167,17 @@ def select_anomalies(scored: pd.DataFrame, energy: pd.DataFrame) -> pd.DataFrame
     return picked.sort_values(["timestamp"])
 
 
-def persist_anomalies(detected: pd.DataFrame, device_power_map: dict) -> None:
+def persist_anomalies(detected: pd.DataFrame, device_power_map: dict, user_id: int = 1) -> None:
     db = SessionLocal()
     try:
-        db.query(Anomaly).delete()
+        db.query(Anomaly).filter(Anomaly.user_id == user_id).delete()
         rows = []
         for _, row in detected.iterrows():
             ts = pd.Timestamp(row["timestamp"]).to_pydatetime()
             atype, desc, device_id = rule_enrich(row, device_power_map)
             rows.append(
                 Anomaly(
-                    user_id=1,
+                    user_id=user_id,
                     timestamp=ts,
                     device_id=device_id,
                     anomaly_score=float(row["anomaly_score"]),
@@ -191,10 +194,10 @@ def persist_anomalies(detected: pd.DataFrame, device_power_map: dict) -> None:
         db.close()
 
 
-def persist_predictions(forecast_df: pd.DataFrame, hourly: pd.DataFrame, model_name: str) -> None:
+def persist_predictions(forecast_df: pd.DataFrame, hourly: pd.DataFrame, model_name: str, user_id: int = 1) -> None:
     db = SessionLocal()
     try:
-        db.query(Prediction).delete()
+        db.query(Prediction).filter(Prediction.user_id == user_id).delete()
         actual_map = {
             pd.Timestamp(ts).to_pydatetime(): float(p)
             for ts, p in zip(hourly["timestamp"], hourly["power"])
@@ -205,7 +208,7 @@ def persist_predictions(forecast_df: pd.DataFrame, hourly: pd.DataFrame, model_n
             ts = pd.Timestamp(row["timestamp"]).to_pydatetime()
             rows.append(
                 Prediction(
-                    user_id=1,
+                    user_id=user_id,
                     timestamp=ts,
                     horizon=0,
                     predicted_power=float(row["power"]),
@@ -218,7 +221,7 @@ def persist_predictions(forecast_df: pd.DataFrame, hourly: pd.DataFrame, model_n
             ts = pd.Timestamp(row["timestamp"]).to_pydatetime()
             rows.append(
                 Prediction(
-                    user_id=1,
+                    user_id=user_id,
                     timestamp=ts,
                     horizon=int(row["horizon"]),
                     predicted_power=float(row["predicted_power"]),
@@ -247,7 +250,7 @@ def persist_strategies(energy: pd.DataFrame, env: pd.DataFrame) -> dict:
 
     db = SessionLocal()
     try:
-        db.query(Strategy).delete()
+        db.query(Strategy).filter(Strategy.user_id == 1).delete()
         rows = [
             Strategy(
                 user_id=1,
@@ -275,11 +278,15 @@ def persist_strategies(energy: pd.DataFrame, env: pd.DataFrame) -> dict:
     }
 
 
-def main() -> None:
-    energy, env, behavior, labels, devices = load_demo()
-    MODELS_DIR.mkdir(parents=True, exist_ok=True)
-    PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
+def _empty_context(energy: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    stamps = pd.to_datetime(energy["timestamp"]).drop_duplicates().sort_values()
+    env = pd.DataFrame({"timestamp": stamps, "temperature": pd.NA, "humidity": pd.NA})
+    behavior = pd.DataFrame({"timestamp": stamps, "occupancy": pd.NA})
+    return env, behavior
 
+
+def train_demo() -> dict:
+    energy, env, behavior, labels, devices = load_demo()
     hourly = build_hourly_frame(energy, env, behavior)
     forecast_metrics = train_forecast_model(
         hourly,
@@ -287,35 +294,105 @@ def main() -> None:
         PROCESSED_DIR / "forecast_metrics.json",
     )
     forecast_df = recursive_forecast(hourly, MODELS_DIR / "forecast.joblib", horizon_hours=24)
-    persist_predictions(forecast_df, hourly, forecast_metrics["model_name"])
+    persist_predictions(forecast_df, hourly, forecast_metrics["model_name"], user_id=1)
 
     anomaly_frame = prepare_anomaly_frame(energy, env, behavior)
     anomaly_train_info = train_anomaly_model(anomaly_frame, MODELS_DIR / "anomaly.joblib")
     scored = score_frame(anomaly_frame, MODELS_DIR / "anomaly.joblib")
     detected = select_anomalies(scored, energy)
-
     device_map: dict = {}
     for ts, group in energy.groupby("timestamp"):
         device_map[pd.Timestamp(ts)] = list(zip(group["device_id"].astype(int), group["power"].astype(float)))
-    persist_anomalies(detected, device_map)
+    persist_anomalies(detected, device_map, user_id=1)
     anomaly_metrics = evaluate_anomalies(detected, labels)
-
     load_metrics = train_load_classifier(energy, MODELS_DIR / "load_clf.joblib")
     strategy_info = persist_strategies(energy, env)
-
-    results = {
+    return {
         "forecast": forecast_metrics,
         "anomaly_model": anomaly_train_info,
         "anomaly_detection": anomaly_metrics,
         "load_identification": load_metrics,
         "strategy": strategy_info,
-        "generated_at": datetime.now().isoformat(timespec="seconds"),
     }
+
+
+def train_real() -> dict:
+    path = PROCESSED_DIR / "real_home_01.csv"
+    if not path.exists():
+        return {"skipped": True, "reason": "缺少 data/processed/real_home_01.csv，请先运行 scripts/import_real_home.py"}
+    energy = pd.read_csv(path, parse_dates=["timestamp"])
+    if "device_type" not in energy.columns:
+        energy["device_type"] = energy.get("device", "other")
+    env, behavior = _empty_context(energy)
+    hourly = build_hourly_frame(energy, env, behavior)
+    forecast_metrics = train_forecast_model(
+        hourly,
+        MODELS_DIR / "forecast_real.joblib",
+        PROCESSED_DIR / "forecast_real_metrics.json",
+        feature_columns=DEGRADED_FEATURE_COLUMNS,
+    )
+    forecast_df = recursive_forecast(hourly, MODELS_DIR / "forecast_real.joblib", horizon_hours=24)
+    persist_predictions(forecast_df, hourly, forecast_metrics["model_name"], user_id=2)
+
+    anomaly_frame = prepare_anomaly_frame(energy, env, behavior)
+    scored = anomaly_frame.copy()
+    scored["anomaly_score"] = 0.5
+    if (MODELS_DIR / "anomaly.joblib").exists():
+        try:
+            scored = score_frame(anomaly_frame, MODELS_DIR / "anomaly.joblib")
+        except Exception:
+            scored = anomaly_frame.copy()
+            scored["anomaly_score"] = 0.5
+    detected = select_anomalies(scored, energy) if "device_type" in energy.columns else scored.head(0)
+    device_map: dict = {}
+    for ts, group in energy.groupby("timestamp"):
+        device_map[pd.Timestamp(ts)] = list(zip(group["device_id"].astype(int), group["power"].astype(float)))
+    persist_anomalies(detected, device_map, user_id=2)
+    labels_path = PROCESSED_DIR / "real_home_01_labels.csv"
+    labels = pd.read_csv(labels_path, parse_dates=["timestamp"]) if labels_path.exists() else pd.DataFrame(columns=["timestamp"])
+    anomaly_metrics = evaluate_anomalies(detected, labels) if not detected.empty else {"precision": 0, "recall": 0, "f1": 0, "labeled": int(len(labels)), "detected": 0}
+    return {
+        "forecast": forecast_metrics,
+        "anomaly_detection": anomaly_metrics,
+        "load_identification": None,
+        "dropped_features": ["temperature", "humidity", "occupancy"],
+        "note": "验证户无占用/天气，预测用降级特征；不做负荷识别准确率。",
+    }
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dataset", choices=("demo", "real", "both"), default="both")
+    args = parser.parse_args()
+    MODELS_DIR.mkdir(parents=True, exist_ok=True)
+    PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
+
+    results: dict = {"generated_at": datetime.now().isoformat(timespec="seconds")}
+    if args.dataset in {"demo", "both"}:
+        results.update(train_demo())
+    if args.dataset in {"real", "both"}:
+        results["real"] = train_real()
+    if results.get("forecast") and results.get("real", {}).get("forecast"):
+        demo_fc = results["forecast"]
+        real_fc = results["real"]["forecast"]
+        results["compare"] = {
+            "demo_mape": demo_fc.get("MAPE"),
+            "real_mape": real_fc.get("MAPE"),
+            "demo_r2": demo_fc.get("R2"),
+            "real_r2": real_fc.get("R2"),
+            "demo_baseline_yesterday": (demo_fc.get("baseline_yesterday") or {}).get("MAPE"),
+            "real_baseline_yesterday": (real_fc.get("baseline_yesterday") or {}).get("MAPE"),
+            "note": "真实/公开户变差是预期结果，不把仿真 R² 当成真实家庭精度。",
+        }
     (MODELS_DIR / "metrics.json").write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
     (PROCESSED_DIR / "experiment_results.json").write_text(
         json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8"
     )
-    print(json.dumps(results, ensure_ascii=False, indent=2))
+    text = json.dumps(results, ensure_ascii=False, indent=2)
+    try:
+        print(text)
+    except UnicodeEncodeError:
+        print(json.dumps(results, ensure_ascii=True, indent=2))
 
 
 if __name__ == "__main__":

@@ -1,0 +1,13 @@
+{
+  "home_id": "real_01",
+  "user_id": 2,
+  "source": "public_style_rebuild",
+  "days": 14,
+  "circuits": 3,
+  "rows": 12096,
+  "today_energy_kwh": 6.945,
+  "has_occupancy": false,
+  "has_weather": false,
+  "load_identification": false,
+  "note": "无占用/天气，预测走降级特征；无分路标签时不做家电分类准确率。"
+}

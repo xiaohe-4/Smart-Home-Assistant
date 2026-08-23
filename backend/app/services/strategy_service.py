@@ -2,8 +2,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ai.optimization.strategy_engine import simulate_savings
-from app.models import Strategy
-from app.services.energy_service import today_stats
+from app.models import Device, EnergyRecord, Strategy
+from app.services.energy_service import day_range, demo_day, today_stats
 from app.services.insight_service import load_today_frame, replay_frames
 from app.utils.pricing import carbon_of, estimate_bill
 
@@ -18,15 +18,30 @@ def top_strategies(db: Session, user_id: int, limit: int = 3) -> list[Strategy]:
     return list_strategies(db, user_id)[:limit]
 
 
+def _night_heater_anomaly(db: Session, user_id: int) -> bool:
+    start, end = day_range(demo_day())
+    rows = db.execute(
+        select(EnergyRecord.power, EnergyRecord.timestamp)
+        .join(Device, Device.id == EnergyRecord.device_id)
+        .where(
+            EnergyRecord.user_id == user_id,
+            EnergyRecord.timestamp >= start,
+            EnergyRecord.timestamp < end,
+            Device.device_type == "water_heater",
+        )
+    ).all()
+    return any(getattr(ts, "hour", 0) == 3 and float(power or 0) > 800 for power, ts in rows)
+
+
 def simulate(db: Session, user_id: int, strategy_ids: list[int]) -> dict:
     items = list_strategies(db, user_id)
-    selected = [s for s in items if not strategy_ids or s.id in strategy_ids]
+    selected = [s for s in items if s.id in strategy_ids] if strategy_ids else items
     stats = today_stats(db, user_id)
     result = simulate_savings(
         stats["today_energy"],
         stats["device_energy"],
         [s.strategy_type for s in selected],
-        anomaly_night_heater=True,
+        anomaly_night_heater=_night_heater_anomaly(db, user_id),
     )
     avg_price = 0.55
     before_cost = estimate_bill(result["before_kwh"], avg_price)

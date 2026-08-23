@@ -6,7 +6,7 @@ import { butlerApi } from "../api";
 import { canListen, listenOnce, speak } from "../hooks/useSpeech";
 import type { ButlerReply, ButlerState } from "../types";
 
-export default function ButlerDock() {
+export default function ButlerDock({ muted = false }: { muted?: boolean }) {
   const nav = useNavigate();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
@@ -26,7 +26,7 @@ export default function ButlerDock() {
       const res = await butlerApi.command(q);
       setLast(res);
       setState(res);
-      if (!res.quiet) {
+      if (!res.quiet && !muted && localStorage.getItem("se-mute") !== "1") {
         setTalking(true);
         speak(res.speech, () => setTalking(false));
       }

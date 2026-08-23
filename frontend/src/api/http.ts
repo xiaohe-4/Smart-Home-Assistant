@@ -1,9 +1,15 @@
 import axios, { AxiosError } from "axios";
 import { message } from "antd";
+import { appStore } from "../stores/appStore";
 
 export const http = axios.create({
   baseURL: "/api",
   timeout: 30000,
+});
+
+http.interceptors.request.use((config) => {
+  config.params = { ...config.params, user_id: appStore.userId };
+  return config;
 });
 
 http.interceptors.response.use(

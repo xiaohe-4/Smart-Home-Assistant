@@ -79,6 +79,8 @@ class PredictionPoint(BaseModel):
 
 
 class PredictionOut(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
+
     horizon_hours: int
     model_name: str
     model_version: str
