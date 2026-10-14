@@ -75,7 +75,7 @@ export default function ButlerDock({ muted = false }: { muted?: boolean }) {
   return (
     <>
       <button className={`butler-fab ${talking ? "talking" : ""}`} onClick={() => { setOpen((v) => !v); if (!open) void load(); }} title="管家宝强">
-        <span className="butler-face">强</span>
+        <img className="butler-face" src="/art/butler.jpg" alt="" />
         <span>管家宝强</span>
       </button>
       {open ? (
@@ -84,15 +84,7 @@ export default function ButlerDock({ muted = false }: { muted?: boolean }) {
             <b>管家宝强 · {state?.scene || "日常"}</b>
             <Button type="text" size="small" icon={<CloseOutlined />} onClick={() => setOpen(false)} />
           </div>
-          <div className={`butler-avatar ${talking ? "talking" : ""}`}>
-            <div className="butler-cap" />
-            <div className="butler-head">
-              <div className="butler-eye" />
-              <div className="butler-eye" />
-              <div className={`butler-mouth ${talking ? "on" : ""}`} />
-            </div>
-            <div className="butler-body">智家能</div>
-          </div>
+          <img className={`butler-portrait ${talking ? "talking" : ""}`} src="/art/butler.jpg" alt="" />
           <p className="butler-speech">{last?.speech || state?.brief || "您歇着，开关我来拧。可以说：汇报一下。"}</p>
           {state?.pending_cmd ? (
             <div className="pending-banner slim">

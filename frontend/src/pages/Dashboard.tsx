@@ -167,9 +167,9 @@ export default function Dashboard() {
     <div className="page-shell">
       <div className="hero-banner">
         <div className="hero-copy-wrap">
-          <div className="hero-kicker">智家能 · 今晚该关什么</div>
-          <h1 className="hero-title">给家庭一张「该关什么」的执行单</h1>
-          <p className="hero-copy">电表只告诉你这个月多少度。这里回答：为什么贵、哪笔是浪费、今晚关哪一档。</p>
+          <div className="hero-kicker">2026-08-19 · 晚上 8 点半</div>
+          <h1 className="hero-title">今天的电，花在哪了</h1>
+          <p className="hero-copy">右边是到现在的度数和电费。往下可以看是哪台在转，03:17 那笔热水器也在。</p>
           <div className="hero-actions">
             <button className="tonight-cta" onClick={() => { sessionStorage.setItem("se-autosim", "1"); nav("/strategy"); window.dispatchEvent(new Event("se-autosim")); }}>今晚怎么做</button>
             <button className="hero-ghost" onClick={() => nav("/anomaly")}>看 03:17 异常</button>
@@ -227,7 +227,7 @@ export default function Dashboard() {
       </div>
 
       {life ? (
-        <Card title="今晚作战计划" extra={<a onClick={() => nav("/life")}>打开生活系统</a>} style={{ marginBottom: 16 }}>
+        <Card title="今晚要办的" extra={<a onClick={() => nav("/life")}>看全部</a>} style={{ marginBottom: 16 }}>
           <TonightBoard
             compact
             missions={life.missions || []}
@@ -239,7 +239,7 @@ export default function Dashboard() {
 
       <div style={{ height: 16 }} />
       <div className="two-col">
-        <Card title="家庭空间孪生" extra={<span className="live-pill">{now?.location || data?.twin.location} · {now?.activity || data?.twin.activity}</span>}>
+        <Card title="各房间" extra={<span className="live-pill">{now?.location || data?.twin.location} · {now?.activity || data?.twin.activity}</span>}>
           <FloorPlan rooms={showcase?.rooms || []} location={now?.location || data?.twin.location} />
         </Card>
         <ChartCard title="今日能量流向" loading={loading} empty={!showcase?.sankey.links.length} option={sankeyOption} height={360} />

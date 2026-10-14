@@ -4,9 +4,9 @@ import { PlayCircleOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 
 const CORE = [
-  { title: "幕 1 · 为何贵", path: "/", text: "点「回放今日」，从早拉到 20:30。看今日电量、第一耗电设备和评分。口播：贵，主要贵在空调。" },
-  { title: "幕 2 · 哪笔浪费", path: "/anomaly", text: "拉到 03:17 热水器启动。规则：时段不合理 + 占用低 + 功率偏离。必须说：模型 F1 只有 0.35，结论以规则为准，模型只打分。" },
-  { title: "幕 3 · 今晚关哪一档", path: "/strategy", text: "执行空调 24→26℃，看电量/电费/削峰对比。再去管家点头执行，并点一次「关冰箱」被拒绝。现场是模拟控制。" },
+  { title: "今天为什么贵", path: "/", text: "点「回放今日」，从早拉到 20:30。看今日电量、第一耗电设备和评分。贵，主要贵在空调。" },
+  { title: "03:17 那笔", path: "/anomaly", text: "拉到 03:17 热水器启动。时段不合理，家里人少，功率也偏了。模型 F1 只有 0.35，以规则为准，模型只打分。" },
+  { title: "空调调到 26 度", path: "/strategy", text: "把空调从 24℃ 调到 26℃，看电量、电费和削峰。再到管家那里点头。说一次关冰箱，会被拒绝。开关是模拟的。" },
 ];
 
 const ADVANCED = [
@@ -78,12 +78,12 @@ export default function DemoTour() {
           <Button key="skip" onClick={close}>跳过</Button>,
           step > 0 ? <Button key="prev" onClick={() => go(step - 1)}>上一步</Button> : null,
           step < steps.length - 1
-            ? <Button key="next" type="primary" onClick={() => go(step + 1)}>下一幕</Button>
+            ? <Button key="next" type="primary" onClick={() => go(step + 1)}>下一步</Button>
             : <Button key="done" type="primary" onClick={close}>完成演示</Button>,
         ]}
       >
         <Typography.Paragraph>{steps[step]?.text}</Typography.Paragraph>
-        <Typography.Text type="secondary">{step + 1} / {steps.length} · 为何贵 → 哪笔浪费 → 今晚关哪一档</Typography.Text>
+        <Typography.Text type="secondary">{step + 1} / {steps.length}</Typography.Text>
       </Modal>
     </>
   );

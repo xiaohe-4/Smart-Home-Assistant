@@ -38,7 +38,7 @@ export default function Profile() {
 
   return (
     <div>
-      <h1 className="page-title">家庭能源画像</h1>
+      <h1 className="page-title">这户概况</h1>
       <p className="page-sub">{profile ? `${profile.city} · ${profile.season} · ${profile.household_name}` : "加载中"}</p>
       <Row gutter={16} style={{ marginBottom: 16 }}>
         <Col xs={24} md={8}>
@@ -55,7 +55,7 @@ export default function Profile() {
         <Col span={8}><Card><Statistic title="今日电费" value={insights?.tou.total_cost ?? 0} precision={2} suffix="元" /></Card></Col>
         <Col span={8}><Card><Statistic title="今日碳排" value={insights?.carbon_kg ?? 0} precision={2} suffix="kg" /></Card></Col>
       </Row>
-      <Card title="AI 画像解读" extra={<a onClick={() => nav("/models")}>模型实验舱</a>} style={{ marginBottom: 16 }}>
+      <Card title="这户现在怎样" extra={<a onClick={() => nav("/models")}>模型实验</a>} style={{ marginBottom: 16 }}>
         <Typography.Paragraph>{insights?.assistant.summary}</Typography.Paragraph>
         {lab?.forecast.metrics?.R2 != null ? (
           <Typography.Paragraph type="secondary">

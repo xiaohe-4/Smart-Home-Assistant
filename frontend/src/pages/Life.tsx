@@ -100,8 +100,8 @@ export default function Life() {
 
   return (
     <div>
-      <h1 className="page-title">家庭能源生活系统</h1>
-      <p className="page-sub">电价时钟、今晚任务、电网邀约、分人归因都来自这户 30 日数据。演示邀约的奖励是示意金额。</p>
+      <h1 className="page-title">今天的安排</h1>
+      <p className="page-sub">电价、今晚要办的事、电网邀约，按这户 30 天的数来。邀约里的奖励是示意，不是已经到账。</p>
       {data ? <PriceClock clock={data.clock} /> : null}
       {data?.demand ? (
         <DemandBanner
@@ -120,7 +120,7 @@ export default function Life() {
         ))}
       </div>
 
-      <Card title="今晚作战计划" extra={data ? `在家 ${data.occupancy} 人 · 高峰占比 ${data.tou?.peak_share ?? "--"}%` : null} style={{ marginBottom: 16 }} loading={loading}>
+      <Card title="今晚要办的" extra={data ? `在家 ${data.occupancy} 人 · 高峰占比 ${data.tou?.peak_share ?? "--"}%` : null} style={{ marginBottom: 16 }} loading={loading}>
         {data ? <TonightBoard missions={data.missions} challenge={data.challenge} onRun={(key) => void runMission(key)} /> : null}
       </Card>
 

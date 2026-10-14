@@ -99,8 +99,8 @@ export default function Strategy() {
 
   return (
     <div>
-      <h1 className="page-title">AI 节能建议</h1>
-      <p className="page-sub">空调 24→26℃ 按本户今日空调电量估算，不是全市平均。现场模拟控制，不接真实插座。舒适度滑杆只缩放已算出的节能量。</p>
+      <h1 className="page-title">节能建议</h1>
+      <p className="page-sub">空调从 24℃ 调到 26℃，按这户今天的空调电量估，不是全市平均。不接真实插座。滑杆只是把算出的节电放大或缩小。</p>
       <Row gutter={16}>
         <Col xs={24} lg={14}>
           <Card loading={loading} extra={

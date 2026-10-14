@@ -81,7 +81,7 @@ export default function Energy() {
   return (
     <div>
       <h1 className="page-title">能耗分析</h1>
-      <p className="page-sub">把电量、峰谷、环境温度和家庭占用放在同一时间轴上解读。设备占比来自分路电表汇总，不是总表盲拆 NILM。</p>
+      <p className="page-sub">电量、峰谷、室温和家里有没有人，按同一天对齐着看。占比是分路电表加出来的，不是从总表里拆的。</p>
       <Radio.Group value={days} onChange={(e) => setDays(e.target.value)} style={{ marginBottom: 16 }}>
         <Radio.Button value={1}>日</Radio.Button>
         <Radio.Button value={7}>周</Radio.Button>

@@ -12,11 +12,20 @@ http.interceptors.request.use((config) => {
   return config;
 });
 
+let lastApiToast = "";
+
 http.interceptors.response.use(
   (res) => res,
   (error: AxiosError<{ detail?: string }>) => {
     const detail = error.response?.data?.detail || error.message || "请求失败";
-    message.error(typeof detail === "string" ? detail : "服务暂时不可用");
+    const text = typeof detail === "string" ? detail : "服务暂时不可用";
+    if (text !== lastApiToast) {
+      lastApiToast = text;
+      window.setTimeout(() => {
+        if (lastApiToast === text) lastApiToast = "";
+      }, 2500);
+      message.error({ content: text, key: "api-error" });
+    }
     return Promise.reject(error);
   }
 );

@@ -82,8 +82,8 @@ export default function Prediction() {
     <div>
       <h1 className="page-title">能耗预测</h1>
       <p className="page-sub">
-        绿色带宽按真实 RMSE 绘制。只报 MAE / RMSE / MAPE / R²，TimeSeriesSplit 切分，不用 100-MAPE 当准确率。
-        <a style={{ marginLeft: 8 }} onClick={() => nav("/models")}>打开模型实验舱</a>
+        绿带是按 RMSE 画的误差，不是保证能落在里面。指标是 MAE、RMSE、MAPE、R²，不把 100 减 MAPE 写成准确率。
+        <a style={{ marginLeft: 8 }} onClick={() => nav("/models")}>看模型数字</a>
       </p>
       <Radio.Group value={hours} onChange={(e) => setHours(e.target.value)} style={{ marginBottom: 16 }}>
         <Radio.Button value={6}>未来 6 小时</Radio.Button>

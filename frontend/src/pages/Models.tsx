@@ -51,8 +51,8 @@ export default function Models() {
 
   return (
     <div>
-      <h1 className="page-title">模型实验舱</h1>
-      <p className="page-sub">只报 MAE / RMSE / MAPE / R²，并和昨天同时段、近 7 日同时段平均对照。异常 F1=0.35，上线以规则为准。</p>
+      <h1 className="page-title">模型实验</h1>
+      <p className="page-sub">这里是 MAE、RMSE、MAPE、R²，并和昨天同一时段、近 7 天同一时段比。异常 F1 是 0.35，以规则为准。</p>
       <div className="honesty-note">{lab?.honesty || "正在读取 models/metrics.json 与 joblib。"}</div>
       <Row gutter={16} style={{ marginBottom: 16 }}>
         <Col xs={24} md={6}>

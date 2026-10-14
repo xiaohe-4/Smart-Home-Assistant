@@ -89,20 +89,12 @@ export default function Butler() {
   return (
     <div>
       <h1 className="page-title">管家宝强</h1>
-      <p className="page-sub">能听、能说、能拧开关、能汇报、能记住偏好。控制是家庭侧模拟，节能量按功率差估到午夜。</p>
+      <p className="page-sub">可以说晚安、出门，或把空调调到 26 度。开关是模拟的，今天已经记下的电不会改。省下的按功率差估到半夜。</p>
       <Row gutter={16}>
         <Col xs={24} lg={10}>
           <Card>
             <div className={`butler-stage ${talking ? "talking" : ""}`}>
-              <div className="butler-avatar lg">
-                <div className="butler-cap" />
-                <div className="butler-head">
-                  <div className="butler-eye" />
-                  <div className="butler-eye" />
-                  <div className={`butler-mouth ${talking ? "on" : ""}`} />
-                </div>
-                <div className="butler-body">智家能管家</div>
-              </div>
+              <img className={`butler-portrait lg ${talking ? "talking" : ""}`} src="/art/butler.jpg" alt="" />
               <div>
                 <div className="hero-kicker">
                   {state?.scene || "日常"} · 偏好 {state?.preferred_ac ?? 26}℃ {state?.quiet ? "· 免打扰" : ""}
@@ -126,7 +118,7 @@ export default function Butler() {
               <Button icon={<AudioOutlined />} type={listening ? "primary" : "default"} onClick={mic}>{listening ? "在听" : "说话"}</Button>
               <Button type="primary" loading={busy} onClick={() => void run(text)}>去办</Button>
             </Space.Compact>
-            <div className="page-sub" style={{ marginTop: 8 }}>语音需 Chrome / Edge。系统会优先用更自然的中文声线，数字按口语来读。也可以点技能，或者说：点头、调高一度、有客人。</div>
+            <div className="page-sub" style={{ marginTop: 8 }}>语音要用本机的 Chrome 或 Edge。不想说就打字，也可以点下面的技能。</div>
           </Card>
           {(state?.skills || []).map((group) => (
             <Card key={group.group} title={group.group} size="small" style={{ marginTop: 12 }}>

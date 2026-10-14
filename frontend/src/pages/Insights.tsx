@@ -76,8 +76,8 @@ export default function Insights() {
 
   return (
     <div>
-      <h1 className="page-title">智能洞察</h1>
-      <p className="page-sub">从相关性和电价结构中找出浪费点，而不是只看总电量。</p>
+      <h1 className="page-title">用电对照</h1>
+      <p className="page-sub">看峰谷电费，以及功率和室温、家里有没有人对不对得上。</p>
       <Row gutter={16} style={{ marginBottom: 16 }}>
         <Col xs={12} md={6}><Card loading={loading}><Statistic title="功率-室温相关" value={data?.correlation.power_vs_temperature ?? 0} precision={2} /></Card></Col>
         <Col xs={12} md={6}><Card loading={loading}><Statistic title="功率-占用相关" value={data?.correlation.power_vs_occupancy ?? 0} precision={2} /></Card></Col>
@@ -90,7 +90,7 @@ export default function Insights() {
         </Card>
       ) : null}
       <div className="two-col">
-        <ChartCard title="家庭能源健康雷达" loading={loading} empty={!data} option={radar} />
+        <ChartCard title="几项分数" loading={loading} empty={!data} option={radar} />
         <ChartCard title="分时电费" loading={loading} empty={!data} option={bill} />
       </div>
       {data?.radar?.notes ? (
@@ -101,9 +101,9 @@ export default function Insights() {
       <div style={{ height: 16 }} />
       <ChartCard title="近 30 日用电热力" loading={loading} empty={!data?.showcase?.heatmap.length} option={heatOption} height={220} />
       <div style={{ height: 16 }} />
-      <ChartCard title="设备能量桑基" loading={loading} empty={!data?.showcase?.sankey.links.length} option={sankeyOption} height={360} />
+      <ChartCard title="各设备用电" loading={loading} empty={!data?.showcase?.sankey.links.length} option={sankeyOption} height={360} />
       <div style={{ height: 16 }} />
-      <Card title="决策洞察">
+      <Card title="看下来的几条">
         {(data?.insights || []).map((item) => (
           <div key={item.title} className="assistant-bubble">
             <Tag color={item.level === "alert" ? "red" : item.level === "warn" ? "gold" : "green"}>{item.level}</Tag>

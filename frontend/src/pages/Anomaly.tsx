@@ -48,11 +48,10 @@ export default function Anomaly() {
 
   return (
     <div>
-      <h1 className="page-title">异常解释器</h1>
+      <h1 className="page-title">异常</h1>
       <p className="page-sub">
-        主：规则（凌晨用水电、无人仍高功率、连续照明）。辅：Isolation Forest 只打分。
-        模型 F1 只有 0.35，所以结论以规则为准。
-        <a style={{ marginLeft: 8 }} onClick={() => nav("/models")}>打开模型实验舱</a>
+        凌晨用水、没人还在耗电、灯一直亮，按这几条规则判。模型只给一个分，F1 是 0.35，所以以规则为准。
+        <a style={{ marginLeft: 8 }} onClick={() => nav("/models")}>看模型数字</a>
       </p>
       <div className="honesty-note">{anom?.honesty}</div>
       <Row gutter={16} style={{ marginBottom: 16 }}>

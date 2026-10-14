@@ -36,7 +36,7 @@ export default function Assistant() {
   return (
     <div>
       <h1 className="page-title">AI 能源助手</h1>
-      <p className="page-sub">结构化问答：解释成因、定位浪费、给出可执行策略。核心数值仍由预测和规则引擎计算。</p>
+      <p className="page-sub">问为什么耗电、电费多少。数字是算好的，这里只是把它说出来。</p>
       <Card>
         <Space wrap style={{ marginBottom: 16 }}>
           {presets.map((p) => (

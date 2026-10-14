@@ -51,9 +51,9 @@ export default function Sources() {
     <div>
       <h1 className="page-title">仿真户 vs 验证户</h1>
       <p className="page-sub">{data?.honesty}</p>
-      <div className="honesty-note">{compare?.note || "演示户保现场；验证户证明能灌真表/公开集。"}</div>
+      <div className="honesty-note">{compare?.note || "现在这户是演示数据。另一户用来对真表或公开数据。"}</div>
       {compare?.boundary?.length ? (
-        <p className="page-sub">三句边界：{compare.boundary.join(" ")}</p>
+        <p className="page-sub">要注意：{compare.boundary.join(" ")}</p>
       ) : null}
       <Card title="对照表" style={{ margin: "12px 0 16px" }} loading={loading}>
         <table className="compare-table">

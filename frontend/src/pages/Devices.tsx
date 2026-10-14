@@ -42,21 +42,21 @@ export default function Devices() {
   return (
     <div>
       <h1 className="page-title">家庭设备</h1>
-      <p className="page-sub">每台设备都可以让管家宝强去关、去开、去调温。关闭是模拟执行，历史曲线仍保留今日实测。</p>
+      <p className="page-sub">点一台看今天的功率。让宝强去关，改的是现在的开关，曲线还是今天已经记下的。</p>
       <Row gutter={16}>
         <Col xs={24} lg={14}>
           <div className="device-grid">
             {devices.map((d) => (
               <div
                 key={d.id}
-                className={`device-tile ${selected?.id === d.id ? "active" : ""}`}
+                className={`device-tile ${selected?.id === d.id ? "active" : ""} ${d.status === "运行" ? "live" : ""}`}
                 onClick={() => { setSelected(d); deviceApi.energy(d.id).then(setSeries); }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <b>{d.name}</b>
                   <Tag color={d.status === "运行" ? "green" : d.status === "关闭" ? "red" : "default"}>{d.status}</Tag>
                 </div>
-                <div style={{ margin: "10px 0 6px", fontSize: 22, fontWeight: 800 }}>{d.current_power} W</div>
+                <div className="device-power">{d.current_power}<span> W</span></div>
                 <div style={{ color: "#5f746a", fontSize: 12, marginBottom: 8 }}>今日 {d.today_energy} kWh · 运行 {d.runtime_hours} h</div>
                 <Progress percent={d.share} size="small" strokeColor="#16a34a" />
                 <Space style={{ marginTop: 8 }} onClick={(e) => e.stopPropagation()}>

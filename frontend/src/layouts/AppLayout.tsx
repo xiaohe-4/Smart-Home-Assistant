@@ -1,4 +1,4 @@
-import { Button, ConfigProvider, Layout, Menu, Select, Switch, Typography, theme } from "antd";
+import { Button, ConfigProvider, Layout, Menu, Select, Switch, Typography, message, theme } from "antd";
 import {
   AlertOutlined,
   AppstoreOutlined,
@@ -24,17 +24,17 @@ import { appStore } from "../stores/appStore";
 const { Sider, Header, Content } = Layout;
 
 const items = [
-  { key: "/", icon: <DashboardOutlined />, label: "智能总览" },
+  { key: "/", icon: <DashboardOutlined />, label: "总览" },
   { key: "/energy", icon: <BarChartOutlined />, label: "能耗分析" },
   { key: "/devices", icon: <AppstoreOutlined />, label: "家庭设备" },
   { key: "/prediction", icon: <LineChartOutlined />, label: "能耗预测" },
-  { key: "/anomaly", icon: <AlertOutlined />, label: "异常解释器" },
-  { key: "/strategy", icon: <ThunderboltOutlined />, label: "AI 节能建议" },
+  { key: "/anomaly", icon: <AlertOutlined />, label: "异常" },
+  { key: "/strategy", icon: <ThunderboltOutlined />, label: "节能建议" },
   { key: "/butler", icon: <CustomerServiceOutlined />, label: "管家宝强" },
   { key: "/life", icon: <ScheduleOutlined />, label: "生活系统" },
   { key: "/guide", icon: <QuestionCircleOutlined />, label: "使用说明" },
   { key: "/assistant", icon: <CommentOutlined />, label: "能源助手" },
-  { key: "/profile", icon: <ExperimentOutlined />, label: "家庭能源画像" },
+  { key: "/profile", icon: <ExperimentOutlined />, label: "这户概况" },
   {
     key: "lab",
     icon: <FundOutlined />,
@@ -42,7 +42,7 @@ const items = [
     children: [
       { key: "/sources", icon: <DatabaseOutlined />, label: "数据来源" },
       { key: "/models", icon: <FundOutlined />, label: "模型实验" },
-      { key: "/insights", icon: <CompassOutlined />, label: "智能洞察" },
+      { key: "/insights", icon: <CompassOutlined />, label: "用电对照" },
     ],
   },
 ];
@@ -62,6 +62,10 @@ export default function AppLayout() {
   useEffect(() => {
     localStorage.setItem("se-mute", mute ? "1" : "0");
   }, [mute]);
+
+  useEffect(() => {
+    message.config({ top: 76, maxCount: 1, duration: 2.4 });
+  }, []);
 
   const switchHome = (id: number) => {
     appStore.setUserId(id);
@@ -83,8 +87,13 @@ export default function AppLayout() {
           Menu: {
             darkItemBg: "transparent",
             darkSubMenuItemBg: "transparent",
-            darkItemSelectedBg: "rgba(52, 211, 153, 0.18)",
+            darkItemSelectedBg: "rgba(52, 211, 153, 0.22)",
+            darkItemSelectedColor: "#ecfdf5",
             darkItemHoverBg: "rgba(255,255,255,0.06)",
+            darkItemColor: "#d7ece2",
+            itemBorderRadius: 10,
+            itemHeight: 40,
+            itemMarginInline: 8,
           },
         },
       }}
@@ -92,13 +101,14 @@ export default function AppLayout() {
       <Layout style={{ minHeight: "100vh" }}>
         <Sider className="app-sider" breakpoint="lg" collapsedWidth={64} width={228}>
           <div className="sider-brand">
-            <div className="logo-mark">智</div>
+            <img className="logo-mark" src="/art/logo.jpg?v=3" alt="" />
             <div>
               <div className="sider-name">智家能</div>
-              <div className="sider-tag">今晚该关什么</div>
+              <div className="sider-tag">看家里的电</div>
             </div>
           </div>
           <Menu
+            mode="inline"
             theme="dark"
             selectedKeys={[loc.pathname]}
             defaultOpenKeys={["lab"]}
@@ -129,9 +139,11 @@ export default function AppLayout() {
               <Button type="text" size="small" icon={<QuestionCircleOutlined />} onClick={() => nav("/guide")}>
                 使用说明
               </Button>
-              <span className="header-date">2026-08-19</span>
-              <Switch size="small" checked={mute} onChange={setMute} checkedChildren="静音" unCheckedChildren="语音" />
-              <Switch size="small" checked={dark} onChange={setDark} checkedChildren="夜" unCheckedChildren="日" />
+              <span className="header-tools">
+                <span className="header-date">2026-08-19</span>
+                <Switch size="small" checked={mute} onChange={setMute} checkedChildren="静音" unCheckedChildren="语音" />
+                <Switch size="small" checked={dark} onChange={setDark} checkedChildren="夜" unCheckedChildren="日" />
+              </span>
             </div>
           </Header>
           <Content className="app-content">
