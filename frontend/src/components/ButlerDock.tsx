@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button, Input, Space, Tag } from "antd";
 import { AudioOutlined, CloseOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
@@ -17,8 +17,9 @@ export default function ButlerDock({ muted = false }: { muted?: boolean }) {
   const [talking, setTalking] = useState(false);
 
   const load = () => butlerApi.state().then(setState);
+  const silent = muted || localStorage.getItem("se-mute") === "1";
 
-  const run = async (command: string) => {
+  const run = useCallback(async (command: string) => {
     const q = command.trim();
     if (!q) return;
     setBusy(true);
@@ -26,7 +27,7 @@ export default function ButlerDock({ muted = false }: { muted?: boolean }) {
       const res = await butlerApi.command(q);
       setLast(res);
       setState(res);
-      if (!res.quiet && !muted && localStorage.getItem("se-mute") !== "1") {
+      if (!res.quiet && localStorage.getItem("se-mute") !== "1") {
         setTalking(true);
         speak(res.speech, () => setTalking(false));
       }
@@ -34,7 +35,7 @@ export default function ButlerDock({ muted = false }: { muted?: boolean }) {
     } finally {
       setBusy(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     const openPanel = () => {
@@ -51,7 +52,7 @@ export default function ButlerDock({ muted = false }: { muted?: boolean }) {
       window.removeEventListener("se-butler-open", openPanel);
       window.removeEventListener("se-butler-eco", auto);
     };
-  }, []);
+  }, [run]);
 
   const mic = () => {
     if (!canListen()) {
@@ -86,6 +87,7 @@ export default function ButlerDock({ muted = false }: { muted?: boolean }) {
           </div>
           <img className={`butler-portrait ${talking ? "talking" : ""}`} src="/art/butler.jpg" alt="" />
           <p className="butler-speech">{last?.speech || state?.brief || "您歇着，开关我来拧。可以说：汇报一下。"}</p>
+          {silent ? <p className="explain-note">语音已关，只显示文字。</p> : null}
           {state?.pending_cmd ? (
             <div className="pending-banner slim">
               备着 {state.pending_reason || state.pending_cmd}

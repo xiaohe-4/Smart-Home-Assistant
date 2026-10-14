@@ -113,10 +113,15 @@ html, body, #root {
   background: transparent !important;
 }
 
-.app-sider .ant-menu-item,
-.app-sider .ant-menu-submenu-title {
+.app-sider:not(.ant-layout-sider-collapsed) .ant-menu-item,
+.app-sider:not(.ant-layout-sider-collapsed) .ant-menu-submenu-title {
   width: calc(100% - 16px);
   margin-inline: 8px !important;
+}
+
+.app-sider .ant-layout-sider-trigger {
+  background: #061610;
+  color: #d7ece2;
 }
 
 .ant-layout-sider-collapsed .sider-brand {
@@ -188,7 +193,7 @@ html, body, #root {
 
 .app-content {
   margin: 0;
-  padding: 22px 28px 96px;
+  padding: 22px 28px 128px;
   width: 100%;
 }
 
@@ -297,13 +302,21 @@ html, body, #root {
   margin-bottom: 16px;
 }
 
+@media (max-width: 1100px) {
+  .kpi-row, .highlight-bar, .dispatch-grid { grid-template-columns: 1fr 1fr; }
+  .story-line { grid-template-columns: 1fr 1fr; }
+  .schedule-rail { grid-template-columns: 1fr 1fr; }
+  .eq-row { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 992px) {
-  .two-col, .device-grid, .highlight-bar, .scene-banner, .story-line, .floorplan, .kpi-row { grid-template-columns: 1fr; }
+  .two-col, .device-grid, .scene-banner, .floorplan { grid-template-columns: 1fr; }
   .app-header { padding: 10px 16px !important; flex-wrap: wrap; }
-  .app-content { padding: 16px 14px 96px; }
+  .app-content { padding: 16px 14px 128px; }
   .hero-title { font-size: 22px; }
   .hero-banner { min-height: 0; padding: 22px 18px; }
   .hero-stats { grid-template-columns: 1fr; max-width: none; }
+  .guide-step, .guide-say div { flex-direction: column; align-items: flex-start; }
 }
 
 .hero-banner {
@@ -383,17 +396,29 @@ html, body, #root {
 .hero-stat span { display: block; font-size: 12px; color: #d1fae5; margin-bottom: 4px; }
 .hero-stat b { font-size: 22px; line-height: 1.1; font-weight: 800; color: #fff; }
 .hero-stat em, .hero-device em { font-style: normal; margin-left: 6px; font-size: 13px; font-weight: 600; color: #bbf7d0; }
-.hero-device { font-size: 22px !important; }
+.hero-device {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  max-width: 100%;
+  font-size: 20px !important;
+  line-height: 1.25;
+  white-space: normal;
+}
 .hero-banner,
 .hero-stats,
 .hero-stat { min-width: 0; }
 
 @media (max-width: 720px) {
-  .header-left,
-  .header-date { display: none; }
+  .header-chip, .header-date, .guide-label, .header-home { display: none; }
   .home-switch { min-width: 0; width: 148px; }
-  .hero-stats { grid-template-columns: 1fr; width: 100%; }
+  .hero-stats, .kpi-row, .highlight-bar, .dispatch-grid, .story-line { grid-template-columns: 1fr; width: 100%; }
   .hero-title { font-size: 22px; }
+  .price-clock, .challenge-bar { flex-direction: column; align-items: flex-start; }
+  .clock-next { max-width: none; }
+  .comfort-row { grid-template-columns: 1fr; }
+  .device-grid { grid-template-columns: 1fr; }
 }
 
 .compare-table { width: 100%; border-collapse: collapse; }
@@ -458,10 +483,12 @@ html, body, #root {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(243, 250, 246, 0) 0%, rgba(243, 250, 246, 0) 46%, rgba(243, 250, 246, 0.92) 78%, rgba(243, 250, 246, 0.97) 100%);
+  background: linear-gradient(180deg, rgba(6, 22, 17, 0.05) 0%, rgba(6, 22, 17, 0.12) 42%, rgba(6, 22, 17, 0.82) 100%);
   pointer-events: none;
 }
 .room > * { position: relative; z-index: 1; }
+.room-name, .room-kwh { color: #f8fafc; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45); }
+.room-run { color: #d1fae5; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45); }
 .room-living { min-height: 280px; background-image: url("/art/hero-home.jpg"); }
 .room-study { background-image: url("/art/room-study.jpg"); }
 .room-kitchen { background-image: url("/art/room-kitchen.jpg"); }
@@ -536,8 +563,10 @@ html.dark .page-sub, html.dark .kpi-hint, html.dark .highlight-detail { color: #
 .explain-note { color: var(--se-muted); font-size: 12px; margin-top: 4px; }
 .picked-row { background: #ecfdf3 !important; }
 
-html.dark .room { color: #e7f6ee; border-color: #1f3d32; }
-html.dark .room-run { color: #c5ddd2; }
+html.dark .room { border-color: #1f3d32; }
+html.dark .room-run { color: #d1fae5; }
+html.dark .picked-row > td { background: #123226 !important; }
+html.dark .page-error { background: #2a1b0d; color: #fed7aa; border-color: #9a3412; }
 html.dark .scene-banner .page-sub { color: #d7efe4; }
 html.dark .room::after {
   background: linear-gradient(180deg, rgba(7, 21, 16, 0) 0%, rgba(7, 21, 16, 0.05) 46%, rgba(7, 21, 16, 0.9) 80%, rgba(7, 21, 16, 0.96) 100%);
@@ -921,4 +950,82 @@ html.dark .guide-say code { background: #123226; color: #bbf7d0; }
 @media (max-width: 992px) {
   .guide-three, .guide-map { grid-template-columns: 1fr; }
 }
+
+.section-label {
+  margin: 18px 0 10px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: none;
+  color: var(--se-muted);
+}
+
+.page-error {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #9a3412;
+}
+
+.comfort-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.strategy-copy {
+  white-space: pre-wrap;
+  margin: 8px 0;
+  color: var(--se-muted);
+  line-height: 1.55;
+}
+
+.tonight-cta:focus-visible,
+.hero-ghost:focus-visible,
+.command-chip:focus-visible,
+.skill-btn:focus-visible,
+.guide-card:focus-visible {
+  outline: 2px solid #16a34a;
+  outline-offset: 2px;
+}
+
+.nav-drawer .ant-drawer-body {
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #08241c 0%, #0c3326 58%, #103f2f 100%);
+}
+.nav-drawer .ant-menu {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: transparent;
+  color: #d7ece2;
+  border-inline-end: 0 !important;
+}
+.nav-toggle { color: inherit; }
+
+.tour-modal .ant-modal-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.butler-dock {
+  width: min(340px, calc(100vw - 32px));
+  max-height: min(68vh, 540px);
+  overflow: auto;
+}
+
+.picked-row { cursor: pointer; }
+
+html.dark .strategy-copy { color: #c5ddd2; }
 

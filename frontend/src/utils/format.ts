@@ -21,6 +21,31 @@ export function severityColor(severity: string) {
   return "green";
 }
 
+export function activityLabel(activity?: string | null) {
+  const map: Record<string, string> = {
+    sleeping: "睡觉",
+    cooking: "做饭",
+    leaving_home: "出门",
+    resting: "休息",
+    working: "工作",
+    watching_tv: "看电视",
+    returning_home: "回家",
+    unknown: "活动不明",
+  };
+  if (!activity) return "待机";
+  return map[activity] || activity;
+}
+
+export function severityLabel(severity: string) {
+  const map: Record<string, string> = {
+    critical: "严重",
+    high: "高",
+    medium: "中",
+    low: "低",
+  };
+  return map[severity] || severity;
+}
+
 export function anomalyTypeLabel(type: string) {
   const map: Record<string, string> = {
     unusual_time: "异常时段启动",

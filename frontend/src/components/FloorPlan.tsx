@@ -21,7 +21,7 @@ export default function FloorPlan({ rooms, location }: { rooms: NonNullable<Insi
           <div className="room-name">卧室</div>
           <div className="room-kwh">睡眠区</div>
         </div>
-        <div className={`room room-bath ${rooms.find((r) => r.name === "卫生间")?.active ? "on" : ""}`}>
+        <div className={`room room-bath ${location === "卫生间" ? "here" : ""} ${rooms.find((r) => r.name === "卫生间")?.active ? "on" : ""}`}>
           <div className="room-name">卫生间</div>
           <div className="room-kwh">{rooms.find((r) => r.name === "卫生间")?.energy ?? 0} kWh</div>
         </div>

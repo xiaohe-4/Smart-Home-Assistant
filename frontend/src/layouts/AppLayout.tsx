@@ -1,4 +1,4 @@
-import { Button, ConfigProvider, Layout, Menu, Select, Switch, Typography, message, theme } from "antd";
+import { Button, ConfigProvider, Drawer, Layout, Menu, Select, Switch, Typography, message, theme } from "antd";
 import {
   AlertOutlined,
   AppstoreOutlined,
@@ -11,10 +11,12 @@ import {
   ExperimentOutlined,
   FundOutlined,
   LineChartOutlined,
+  MenuOutlined,
   QuestionCircleOutlined,
   ScheduleOutlined,
   ThunderboltOutlined,
 } from "@ant-design/icons";
+import zhCN from "antd/locale/zh_CN";
 import DemoTour from "../components/DemoTour";
 import ButlerDock from "../components/ButlerDock";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -53,6 +55,8 @@ export default function AppLayout() {
   const [dark, setDark] = useState(() => localStorage.getItem("se-dark") === "1");
   const [userId, setUserId] = useState(appStore.userId);
   const [mute, setMute] = useState(() => localStorage.getItem("se-mute") === "1");
+  const [narrow, setNarrow] = useState(() => window.innerWidth < 992);
+  const [navOpen, setNavOpen] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
@@ -60,8 +64,10 @@ export default function AppLayout() {
   }, [dark]);
 
   useEffect(() => {
-    localStorage.setItem("se-mute", mute ? "1" : "0");
-  }, [mute]);
+    const onResize = () => setNarrow(window.innerWidth < 992);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   useEffect(() => {
     message.config({ top: 76, maxCount: 1, duration: 2.4 });
@@ -72,8 +78,41 @@ export default function AppLayout() {
     setUserId(id);
   };
 
+  const setMuteNow = (value: boolean) => {
+    setMute(value);
+    localStorage.setItem("se-mute", value ? "1" : "0");
+  };
+
+  const go = (key: string) => {
+    if (!key.startsWith("/")) return;
+    nav(key);
+    setNavOpen(false);
+  };
+
+  const menu = (
+    <Menu
+      mode="inline"
+      theme="dark"
+      selectedKeys={[loc.pathname]}
+      defaultOpenKeys={["lab"]}
+      items={items}
+      onClick={(e) => go(String(e.key))}
+    />
+  );
+
+  const brand = (
+    <div className="sider-brand">
+      <img className="logo-mark" src="/art/logo.jpg?v=3" alt="" />
+      <div>
+        <div className="sider-name">智家能</div>
+        <div className="sider-tag">今晚该关什么</div>
+      </div>
+    </div>
+  );
+
   return (
     <ConfigProvider
+      locale={zhCN}
       theme={{
         algorithm: dark ? theme.darkAlgorithm : theme.defaultAlgorithm,
         token: {
@@ -99,28 +138,33 @@ export default function AppLayout() {
       }}
     >
       <Layout style={{ minHeight: "100vh" }}>
-        <Sider className="app-sider" breakpoint="lg" collapsedWidth={64} width={228}>
-          <div className="sider-brand">
-            <img className="logo-mark" src="/art/logo.jpg?v=3" alt="" />
-            <div>
-              <div className="sider-name">智家能</div>
-              <div className="sider-tag">看家里的电</div>
-            </div>
-          </div>
-          <Menu
-            mode="inline"
-            theme="dark"
-            selectedKeys={[loc.pathname]}
-            defaultOpenKeys={["lab"]}
-            items={items}
-            onClick={(e) => nav(e.key)}
-          />
-        </Sider>
+        {narrow ? (
+          <Drawer
+            placement="left"
+            open={navOpen}
+            onClose={() => setNavOpen(false)}
+            width={268}
+            closable={false}
+            rootClassName="nav-drawer"
+            styles={{ body: { padding: 0 } }}
+          >
+            {brand}
+            {menu}
+          </Drawer>
+        ) : (
+          <Sider className="app-sider" collapsible collapsedWidth={72} width={228} theme="dark">
+            {brand}
+            {menu}
+          </Sider>
+        )}
         <Layout>
           <Header className="app-header">
             <div className="header-left">
+              {narrow ? (
+                <Button type="text" className="nav-toggle" icon={<MenuOutlined />} aria-label="打开菜单" onClick={() => setNavOpen(true)} />
+              ) : null}
               <span className="status-dot" />
-              <Typography.Text>
+              <Typography.Text className="header-home">
                 {userId === 2 ? "验证户 · 缺模态已降级" : "演示户 · 成都仿真四口"}
               </Typography.Text>
               <span className="header-chip">{userId === 2 ? "公开/真实对照" : "演示含仿真"}</span>
@@ -136,12 +180,12 @@ export default function AppLayout() {
                   { value: 2, label: "验证户 · 宿舍风格" },
                 ]}
               />
-              <Button type="text" size="small" icon={<QuestionCircleOutlined />} onClick={() => nav("/guide")}>
-                使用说明
+              <Button type="text" size="small" className="guide-link" icon={<QuestionCircleOutlined />} onClick={() => nav("/guide")}>
+                <span className="guide-label">使用说明</span>
               </Button>
               <span className="header-tools">
                 <span className="header-date">2026-08-19</span>
-                <Switch size="small" checked={mute} onChange={setMute} checkedChildren="静音" unCheckedChildren="语音" />
+                <Switch size="small" checked={mute} onChange={setMuteNow} checkedChildren="静音" unCheckedChildren="语音" />
                 <Switch size="small" checked={dark} onChange={setDark} checkedChildren="夜" unCheckedChildren="日" />
               </span>
             </div>

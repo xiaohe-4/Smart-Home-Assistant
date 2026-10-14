@@ -49,7 +49,10 @@ export default function Strategy() {
       const insights = fulfilled(insightsRes, null as InsightsPayload | null);
       if (cancelled) return;
       setItems(list);
-      const ids = list.slice(0, 3).map((i) => i.id);
+      const autosim = sessionStorage.getItem("se-autosim") === "1";
+      if (autosim) sessionStorage.removeItem("se-autosim");
+      const preferred = list.find((item) => /空调|26/.test(`${item.title} ${item.description}`));
+      const ids = autosim && preferred ? [preferred.id] : list.slice(0, 3).map((i) => i.id);
       setSelected(ids);
       setDispatch(insights?.showcase?.dispatch || []);
       if (ids.length) {
@@ -70,7 +73,10 @@ export default function Strategy() {
   }, [applyComfort]);
 
   useEffect(() => {
-    const handler = () => { void runSim(); };
+    const handler = () => {
+      sessionStorage.removeItem("se-autosim");
+      void runSim();
+    };
     window.addEventListener("se-autosim", handler);
     return () => window.removeEventListener("se-autosim", handler);
   }, [runSim]);
@@ -106,17 +112,19 @@ export default function Strategy() {
           <Card loading={loading} extra={
             <Space>
               <Button onClick={() => { sessionStorage.setItem("se-butler-cmd", "执行今晚节能方案"); nav("/butler"); }}>让宝强去执行</Button>
-              <Button type="primary" onClick={() => runSim()}>模拟优化</Button>
+              <Button type="primary" disabled={!selected.length} onClick={() => runSim()}>模拟优化</Button>
             </Space>
           }>
-            <div style={{ marginBottom: 16 }}>
-              舒适优先 ← <Slider style={{ width: 220, display: "inline-block" }} min={40} max={100} value={comfort} onChange={setComfort} /> → 节能优先（{comfort}%）
+            <div className="comfort-row">
+              <span>舒适优先</span>
+              <Slider min={40} max={100} value={comfort} onChange={setComfort} />
+              <span>节能优先 {comfort}%</span>
             </div>
             <Checkbox.Group value={selected} onChange={(v) => setSelected(v as number[])} style={{ width: "100%" }}>
               {items.map((item) => (
                 <Card key={item.id} size="small" style={{ marginBottom: 12 }}>
                   <Checkbox value={item.id}><b>{item.title}</b></Checkbox>
-                  <div style={{ whiteSpace: "pre-wrap", margin: "8px 0", color: "#4b6358" }}>{item.description}</div>
+                  <div className="strategy-copy">{item.description}</div>
                   <Tag color="green">节约 {item.estimated_saving_percent.toFixed(1)}%</Tag>
                   <Tag>可行性 {(item.feasibility * 100).toFixed(0)}%</Tag>
                   <Tag>舒适度 {item.comfort_impact}</Tag>
@@ -148,7 +156,7 @@ export default function Strategy() {
             {(dispatch || []).map((d) => (
               <div key={d.label} className="dispatch-item" style={{ marginBottom: 8 }}>
                 <b>{d.label}</b> {d.action}
-                <div style={{ color: "#5f746a", fontSize: 12 }}>{d.reason}</div>
+                <div className="explain-note">{d.reason}</div>
               </div>
             ))}
           </Card>

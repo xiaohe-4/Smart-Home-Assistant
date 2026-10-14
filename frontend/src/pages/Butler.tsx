@@ -31,7 +31,7 @@ export default function Butler() {
   const apply = (res: ButlerReply) => {
     setLast(res);
     setState(res);
-    if (!res.quiet) {
+    if (!res.quiet && localStorage.getItem("se-mute") !== "1") {
       setTalking(true);
       speak(res.speech, () => setTalking(false));
     }

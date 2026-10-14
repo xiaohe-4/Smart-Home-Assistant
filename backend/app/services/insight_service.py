@@ -10,6 +10,22 @@ from app.services.energy_service import day_range, demo_day, today_stats
 from app.services.profile_service import assistant_summary, get_energy_score, get_profile, get_saving_potential
 from app.utils.pricing import carbon_of, tou_period, tou_price
 
+ACTIVITY_CN = {
+    "sleeping": "睡觉",
+    "cooking": "做饭",
+    "leaving_home": "出门",
+    "resting": "休息",
+    "working": "工作",
+    "watching_tv": "看电视",
+    "returning_home": "回家",
+    "unknown": "活动不明",
+}
+
+
+def _activity_cn(value: str) -> str:
+    key = (value or "").strip()
+    return ACTIVITY_CN.get(key, key or "待机")
+
 
 def load_today_frame(db: Session, user_id: int) -> pd.DataFrame:
     start, end = day_range(demo_day())
@@ -464,7 +480,8 @@ def replay_frames(frame: pd.DataFrame, saving_percent: float = 12.0) -> list[dic
         energy_so_far += item["energy"]
         cost_so_far += item["cost"]
         optimized_power = round(item["power"] * factor, 1)
-        brief = f"{item['label']} {item['location'] or '家中'}正在{item['activity'] or '待机'}，功率 {item['power']:.0f} W。"
+        activity = _activity_cn(item["activity"])
+        brief = f"{item['label']} {item['location'] or '家中'}正在{activity}，功率 {item['power']:.0f} W。"
         if item["action"] != "保持":
             brief += f"建议{item['action']}。"
         if item["alert"]:

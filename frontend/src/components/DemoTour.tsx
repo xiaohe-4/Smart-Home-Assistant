@@ -32,6 +32,7 @@ export default function DemoTour() {
     if (!next) return;
     setStep(index);
     if (next.path === "/butler") sessionStorage.setItem("se-butler-cmd", "执行今晚节能方案");
+    if (next.path === "/strategy") sessionStorage.setItem("se-autosim", "1");
     nav(next.path);
     if (next.path === "/strategy") window.dispatchEvent(new Event("se-autosim"));
   };
@@ -54,7 +55,10 @@ export default function DemoTour() {
         }
         const nxt = cur + 1;
         nav(steps[nxt].path);
-        if (steps[nxt].path === "/strategy") window.dispatchEvent(new Event("se-autosim"));
+        if (steps[nxt].path === "/strategy") {
+          sessionStorage.setItem("se-autosim", "1");
+          window.dispatchEvent(new Event("se-autosim"));
+        }
         return nxt;
       });
     }, 8000);
@@ -69,6 +73,7 @@ export default function DemoTour() {
         3 分钟演示
       </Button>
       <Modal
+        className="tour-modal"
         title={steps[step]?.title}
         open={open}
         onCancel={close}

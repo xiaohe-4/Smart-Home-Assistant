@@ -4,6 +4,7 @@ type Rec = {
   continuous: boolean;
   onresult: ((event: { results: ArrayLike<{ 0: { transcript: string }; isFinal: boolean }> }) => void) | null;
   onerror: (() => void) | null;
+  onend: (() => void) | null;
   start: () => void;
   stop: () => void;
 };
@@ -167,6 +168,13 @@ export function listenOnce(onText: (text: string, final: boolean) => void): () =
     onText(result[0].transcript, result.isFinal);
   };
   rec.onerror = () => onText("", true);
-  rec.start();
-  return () => rec.stop();
+  rec.onend = () => onText("", true);
+  try {
+    rec.start();
+  } catch {
+    onText("", true);
+  }
+  return () => {
+    try { rec.stop(); } catch { /* 已经停了 */ }
+  };
 }

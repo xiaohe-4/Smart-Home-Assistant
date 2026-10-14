@@ -104,6 +104,7 @@ export default function Energy() {
           rowKey="id"
           dataSource={devices}
           pagination={false}
+          scroll={{ x: 520 }}
           columns={[
             { title: "设备", dataIndex: "name" },
             { title: "今日耗电 (kWh)", dataIndex: "today_energy" },

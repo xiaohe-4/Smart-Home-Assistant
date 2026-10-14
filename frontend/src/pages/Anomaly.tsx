@@ -3,8 +3,19 @@ import { Card, Col, Progress, Row, Statistic, Table, Tag } from "antd";
 import { useNavigate } from "react-router-dom";
 import { anomalyApi, modelsApi } from "../api";
 import ChartCard from "../components/ChartCard";
-import { anomalyTypeLabel, severityColor } from "../utils/format";
+import { anomalyTypeLabel, severityColor, severityLabel } from "../utils/format";
 import type { AnomalyItem, ModelLab } from "../types";
+
+function hourOf(ts: string) {
+  const match = /(\d{2}):(\d{2})/.exec(ts);
+  if (!match) return 0;
+  return Number(match[1]) + Number(match[2]) / 60;
+}
+
+function shortTime(ts: string) {
+  const match = /(\d{2}-\d{2})[T ](\d{2}:\d{2})/.exec(ts);
+  return match ? `${match[1]} ${match[2]}` : ts.slice(0, 16);
+}
 
 export default function Anomaly() {
   const nav = useNavigate();
@@ -30,9 +41,9 @@ export default function Anomaly() {
     yAxis: { type: "value", name: "异常分" },
     series: [{
       type: "scatter",
-      symbolSize: (v: number[]) => 8 + v[1] * 18,
+      symbolSize: (v: number[]) => 10 + Math.min(1, Math.max(0, v[1])) * 16,
       data: rows.map((r) => ({
-        value: [new Date(r.timestamp).getHours() + new Date(r.timestamp).getMinutes() / 60, r.anomaly_score],
+        value: [hourOf(r.timestamp), r.anomaly_score],
         name: r.device_name,
         itemStyle: { color: r.severity === "medium" || r.severity === "high" ? "#f97316" : "#16a34a" },
       })),
@@ -43,7 +54,7 @@ export default function Anomaly() {
     }],
   };
 
-  const night = rows.filter((r) => new Date(r.timestamp).getHours() < 6).length;
+  const night = rows.filter((r) => hourOf(r.timestamp) < 6).length;
   const anom = lab?.anomaly;
 
   return (
@@ -85,13 +96,14 @@ export default function Anomaly() {
           rowKey="id"
           dataSource={rows}
           pagination={{ pageSize: 8 }}
+          scroll={{ x: 860 }}
           onRow={(record) => ({ onClick: () => setPicked(record) })}
           rowClassName={(record) => (picked?.id === record.id ? "picked-row" : "")}
           columns={[
-            { title: "时间", dataIndex: "timestamp", width: 180 },
+            { title: "时间", dataIndex: "timestamp", width: 120, render: (v: string) => shortTime(v) },
             { title: "设备", dataIndex: "device_name", render: (v: string) => v || "家庭负荷" },
             { title: "异常类型", dataIndex: "anomaly_type", render: (v: string) => anomalyTypeLabel(v) },
-            { title: "严重程度", dataIndex: "severity", render: (v: string) => <Tag color={severityColor(v)}>{v}</Tag> },
+            { title: "严重程度", dataIndex: "severity", width: 100, render: (v: string) => <Tag color={severityColor(v)}>{severityLabel(v)}</Tag> },
             { title: "评分", dataIndex: "anomaly_score", render: (v: number) => v.toFixed(3) },
             { title: "建议", dataIndex: "description" },
           ]}

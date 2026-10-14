@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Button, Slider, Tag } from "antd";
 import { PauseCircleOutlined, PlayCircleOutlined } from "@ant-design/icons";
+import { activityLabel } from "../utils/format";
 
 type Frame = {
   hour: number;
@@ -59,7 +60,7 @@ export default function TimeScrubber({
           {current.period === "peak" ? "高峰电价" : current.period === "valley" ? "谷段电价" : "平时电价"} {current.price} 元
         </Tag>
         {current.alert ? <Tag color="red">异常窗口</Tag> : null}
-        <span>{(current.power / 1000).toFixed(2)} kW · {current.occupancy} 人 · {current.location} · {current.activity}</span>
+        <span>{(current.power / 1000).toFixed(2)} kW · {current.occupancy} 人 · {current.location} · {activityLabel(current.activity)}</span>
       </div>
       <Slider min={0} max={23} value={hour} tooltip={{ formatter: (v) => `${String(v).padStart(2, "0")}:00` }} onChange={onChange} />
       <div className="scrubber-action">{current.brief || `调度建议：${current.action}`}</div>

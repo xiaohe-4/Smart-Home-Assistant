@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Card, List, Tag, Typography } from "antd";
+import { Button, Card, List, Tag, Typography } from "antd";
 import { ThunderboltOutlined, DashboardOutlined, AlertOutlined, CloudOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { anomalyApi, insightApi, lifeApi, predictionApi, sourceApi } from "../api";
@@ -14,7 +14,7 @@ import PriceClock from "../components/PriceClock";
 import TimeScrubber from "../components/TimeScrubber";
 import TonightBoard from "../components/TonightBoard";
 import { chartBase } from "../utils/chart";
-import { anomalyTypeLabel, severityColor } from "../utils/format";
+import { activityLabel, anomalyTypeLabel, severityColor } from "../utils/format";
 import type { AnomalyItem, InsightsPayload, LifeOs, PredictionResult, SourceMap } from "../types";
 
 const COMMANDS = [
@@ -37,18 +37,28 @@ export default function Dashboard() {
   const [life, setLife] = useState<LifeOs | null>(null);
   const [sources, setSources] = useState<SourceMap | null>(null);
   const [hour, setHour] = useState(20);
+  const [error, setError] = useState("");
+  const [retry, setRetry] = useState(0);
 
   useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError("");
     Promise.allSettled([insightApi.get(), predictionApi.day(6), anomalyApi.latest(), lifeApi.get(), sourceApi.get()])
       .then(([insights, pr, a, lf, src]) => {
+        if (cancelled) return;
         setData(fulfilled(insights, null));
         setPred(fulfilled(pr, null));
         setAnomalies(fulfilled(a, []));
         setLife(fulfilled(lf, null));
         setSources(fulfilled(src, null));
+        if (insights.status === "rejected") setError("总览数据没读出来。确认后端已启动，再重试。");
       })
-      .finally(() => setLoading(false));
-  }, []);
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [retry]);
 
   const timeline = data?.timeline || [];
   const showcase = data?.showcase;
@@ -65,10 +75,14 @@ export default function Dashboard() {
     return map;
   }, [showcase?.optimized_curve, replay]);
 
+  const labels = timeline.map((p) => String(p.timestamp).slice(11, 16));
+  const hourPrefix = `${String(hour).padStart(2, "0")}:`;
+  const markLabel = labels.find((label) => label.startsWith(hourPrefix)) || labels[0];
+
   const lineOption = {
     ...chartBase,
     legend: { data: ["家庭功率", "优化后功率", "占用人数"] },
-    xAxis: { type: "category", data: timeline.map((p) => p.timestamp.slice(11, 16)), boundaryGap: false },
+    xAxis: { type: "category", data: labels, boundaryGap: false },
     yAxis: [
       { type: "value", name: "W" },
       { type: "value", name: "人", min: 0, max: 4, splitLine: { show: false } },
@@ -87,8 +101,8 @@ export default function Dashboard() {
         },
         markLine: {
           symbol: "none",
-          label: { formatter: now?.label || "" },
-          data: [{ xAxis: `${String(hour).padStart(2, "0")}:00` }],
+          label: { show: false },
+          data: markLabel ? [{ xAxis: markLabel }] : [],
         },
         data: timeline.map((p) => p.power),
       },
@@ -116,17 +130,21 @@ export default function Dashboard() {
     ],
   };
 
+  const sankeyLinks = showcase?.sankey?.links || [];
+  const sankeyNames = new Set<string>(["电网"]);
+  sankeyLinks.forEach((link) => {
+    sankeyNames.add(link.source);
+    sankeyNames.add(link.target);
+  });
   const sankeyOption = {
     tooltip: { trigger: "item" },
     series: [{
       type: "sankey",
       emphasis: { focus: "adjacency" },
+      nodeAlign: "justify",
       lineStyle: { color: "gradient", curveness: 0.5 },
-      data: [
-        { name: "电网" },
-        ...((showcase?.sankey.links || []).map((l) => ({ name: l.target }))),
-      ],
-      links: showcase?.sankey.links || [],
+      data: [...sankeyNames].map((name) => ({ name })),
+      links: sankeyLinks,
     }],
   };
 
@@ -145,13 +163,13 @@ export default function Dashboard() {
         name: "历史",
         type: "line",
         color: "#94a3b8",
-        data: [...(pred?.history || []).slice(-12).map((p) => p.actual_power), ...Array(pred?.forecast.length || 0).fill(null)],
+        data: [...(pred?.history || []).slice(-12).map((p) => p.actual_power), ...Array(pred?.forecast?.length || 0).fill(null)],
       },
       {
         name: "预测",
         type: "line",
         color: "#16a34a",
-        data: [...Array(Math.min(12, pred?.history.length || 0)).fill(null), ...(pred?.forecast || []).map((p) => Number(p.predicted_power.toFixed(1)))],
+        data: [...Array(Math.min(12, pred?.history?.length || 0)).fill(null), ...(pred?.forecast || []).map((p) => Number(p.predicted_power.toFixed(1)))],
       },
     ],
   };
@@ -169,10 +187,10 @@ export default function Dashboard() {
         <div className="hero-copy-wrap">
           <div className="hero-kicker">2026-08-19 · 晚上 8 点半</div>
           <h1 className="hero-title">今天的电，花在哪了</h1>
-          <p className="hero-copy">右边是到现在的度数和电费。往下可以看是哪台在转，03:17 那笔热水器也在。</p>
+          <p className="hero-copy">下面是到现在的度数和电费。再往下能看到是哪台在转，03:17 那笔热水器也在。</p>
           <div className="hero-actions">
-            <button className="tonight-cta" onClick={() => { sessionStorage.setItem("se-autosim", "1"); nav("/strategy"); window.dispatchEvent(new Event("se-autosim")); }}>今晚怎么做</button>
-            <button className="hero-ghost" onClick={() => nav("/anomaly")}>看 03:17 异常</button>
+            <button type="button" className="tonight-cta" onClick={() => { sessionStorage.setItem("se-autosim", "1"); nav("/strategy"); window.dispatchEvent(new Event("se-autosim")); }}>今晚怎么做</button>
+            <button type="button" className="hero-ghost" onClick={() => nav("/anomaly")}>看 03:17 异常</button>
           </div>
         </div>
         <div className="hero-stats">
@@ -186,14 +204,23 @@ export default function Dashboard() {
           </div>
           <div className="hero-stat">
             <span>第一耗电设备</span>
-            <b className="hero-device">{data?.stats.main_device || "空调"}<em>{data?.stats.main_device_share ?? 0}%</em></b>
+            <b className="hero-device"><span>{data?.stats.main_device || "空调"}</span><em>{data?.stats.main_device_share ?? 0}%</em></b>
           </div>
         </div>
       </div>
 
+      {error ? (
+        <div className="page-error">
+          <span>{error}</span>
+          <Button size="small" onClick={() => setRetry((n) => n + 1)}>重试</Button>
+        </div>
+      ) : null}
+
       {now?.alert ? (
         <div className="alert-strip">检测到 {now.label} 异常窗口：热水器非常规启动，可到异常页查看规则归因。</div>
       ) : null}
+
+      <div className="section-label">今天怎么过</div>
 
       <div className="replay-block">
         <ChartCard title="今日功率 · 实际 / 优化 / 占用" loading={loading} empty={!timeline.length} option={lineOption} height={300} extra="橙色带是高峰" />
@@ -220,29 +247,47 @@ export default function Dashboard() {
       {sources ? <ModalityStrip items={sources.modalities} percent={sources.alignment.percent} /> : null}
       <HighlightBar items={showcase?.highlights || []} />
 
+      <div className="section-label">接着可以问</div>
       <div className="command-row">
         {COMMANDS.map((item) => (
-          <button key={item.q} className="command-chip" onClick={() => ask(item.q, item.path)}>{item.q}</button>
+          <button type="button" key={item.q} className="command-chip" onClick={() => ask(item.q, item.path)}>{item.q}</button>
         ))}
       </div>
 
-      {life ? (
-        <Card title="今晚要办的" extra={<a onClick={() => nav("/life")}>看全部</a>} style={{ marginBottom: 16 }}>
-          <TonightBoard
-            compact
-            missions={life.missions || []}
-            challenge={life.challenge}
-            onRun={(key) => void lifeApi.mission(key, true, true).then((lf) => { setLife(lf); window.dispatchEvent(new Event("se-home-update")); })}
+      <div className="section-label">今晚可以做的</div>
+      <div className="two-col">
+        {life ? (
+          <Card title="今晚要办的" extra={<a onClick={() => nav("/life")}>看全部</a>}>
+            <TonightBoard
+              compact
+              missions={life.missions || []}
+              challenge={life.challenge}
+              onRun={(key) => void lifeApi.mission(key, true, true).then((lf) => { setLife(lf); window.dispatchEvent(new Event("se-home-update")); })}
+            />
+          </Card>
+        ) : <Card title="今晚要办的" loading />}
+        <Card title="优先建议" extra={<a onClick={() => { sessionStorage.setItem("se-autosim", "1"); nav("/strategy"); }}>去模拟</a>}>
+          <List
+            dataSource={data?.top_strategies || []}
+            locale={{ emptyText: loading ? "正在读取" : "还没有建议" }}
+            renderItem={(item, idx) => (
+              <List.Item>
+                <List.Item.Meta
+                  title={`${idx + 1}. ${item.title}`}
+                  description={`预计节约 ${item.estimated_saving_percent.toFixed(1)}% · 舒适度 ${item.comfort_impact}`}
+                />
+              </List.Item>
+            )}
           />
         </Card>
-      ) : null}
+      </div>
 
       <div style={{ height: 16 }} />
       <div className="two-col">
-        <Card title="各房间" extra={<span className="live-pill">{now?.location || data?.twin.location} · {now?.activity || data?.twin.activity}</span>}>
+        <Card title="各房间" extra={<span className="live-pill">{now?.location || data?.twin.location} · {activityLabel(now?.activity || data?.twin.activity)}</span>}>
           <FloorPlan rooms={showcase?.rooms || []} location={now?.location || data?.twin.location} />
         </Card>
-        <ChartCard title="今日能量流向" loading={loading} empty={!showcase?.sankey.links.length} option={sankeyOption} height={360} />
+        <ChartCard title="今日能量流向" loading={loading} empty={!sankeyLinks.length} option={sankeyOption} height={360} />
       </div>
 
       <div style={{ height: 16 }} />
@@ -291,36 +336,21 @@ export default function Dashboard() {
       </div>
 
       <div style={{ height: 16 }} />
-      <div className="two-col">
-        <Card title="最新异常">
-          <List
-            loading={loading}
-            dataSource={anomalies}
-            locale={{ emptyText: "暂无异常" }}
-            renderItem={(item) => (
-              <List.Item>
-                <List.Item.Meta
-                  title={<span>{item.timestamp.slice(11, 16)} {item.device_name} <Tag color={severityColor(item.severity)}>{anomalyTypeLabel(item.anomaly_type)}</Tag></span>}
-                  description={item.description}
-                />
-              </List.Item>
-            )}
-          />
-        </Card>
-        <Card title="Top 节能策略" extra={<a onClick={() => nav("/strategy")}>去模拟</a>}>
-          <List
-            dataSource={data?.top_strategies || []}
-            renderItem={(item, idx) => (
-              <List.Item>
-                <List.Item.Meta
-                  title={`${idx + 1}. ${item.title}`}
-                  description={`预计节约 ${item.estimated_saving_percent.toFixed(1)}% · 舒适度 ${item.comfort_impact}`}
-                />
-              </List.Item>
-            )}
-          />
-        </Card>
-      </div>
+      <Card title="最新异常" extra={<a onClick={() => nav("/anomaly")}>看规则</a>}>
+        <List
+          loading={loading}
+          dataSource={anomalies}
+          locale={{ emptyText: "暂无异常" }}
+          renderItem={(item) => (
+            <List.Item>
+              <List.Item.Meta
+                title={<span>{String(item.timestamp).slice(11, 16)} {item.device_name} <Tag color={severityColor(item.severity)}>{anomalyTypeLabel(item.anomaly_type)}</Tag></span>}
+                description={item.description}
+              />
+            </List.Item>
+          )}
+        />
+      </Card>
     </div>
   );
 }

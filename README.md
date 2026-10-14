@@ -1,4 +1,4 @@
-# 智家能——基于多模态家庭数据分析的 AI 能源管理与节能决策系统
+# 智家能：今晚该关什么
 
 给家庭今晚一张「该关什么」的执行单，并能模拟执行后的电费变化。演示户是仿真（稳定打出 03:17）；验证户走公开负荷风格/真实导出，缺模态已降级。
 
@@ -24,6 +24,24 @@
 - 后端：Python + FastAPI + SQLAlchemy + Pydantic
 - AI：NumPy / Pandas / Scikit-learn / XGBoost（若环境不支持则自动回退 RandomForest）
 - 数据库：默认 SQLite，可切换 PostgreSQL
+
+## Linux / macOS 快速启动
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -r backend/requirements.txt
+.venv/bin/python scripts/generate_demo_data.py
+.venv/bin/python scripts/init_db.py
+.venv/bin/python scripts/train_models.py
+
+PYTHONPATH="backend:." .venv/bin/python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
+
+cd frontend
+npm install
+npm run dev
+```
+
+前端默认 http://127.0.0.1:5174/ ，接口文档 http://127.0.0.1:8000/docs 。
 
 ## Windows 快速启动
 
@@ -62,12 +80,11 @@ npm run dev
 
 ## 真实实验指标（勿口头编造）
 
-来源：`models/metrics.json`，训练日 **2026-08-23**。
+来源：`models/metrics.json`，训练日 2026-08-19。
 
 | 实验 | 指标 |
 | --- | --- |
-| 能耗预测 XGBoost（演示户） | MAE 110.76 W · RMSE 234.51 W · MAPE 20.34% · R² 0.9369；对照昨天 23.01%、近 7 日 55.36% |
-| 能耗预测（验证户） | MAPE 25.09% · R² 0.8922；近 7 日同时段均值 MAPE 23.95%，优于模型 |
+| 能耗预测 XGBoost（演示户） | 以 `models/metrics.json` 为准；只报 MAE/RMSE/MAPE/R²，并对照昨天同时段与近 7 日同时段平均 |
 | 异常检测 规则主+IF 辅 | Precision 0.2593 · Recall 0.5385 · F1 0.35 · 标注 13 / 检出 27 |
 | 负荷识别 RF | Accuracy 0.9513 · macro-F1 0.9515（有分路标签的 1 小时窗分类，不是总表 NILM） |
 | 演示日用电 | 18.73 kWh；空调 41.3%、热水器 22.3%、冰箱 11.8% |

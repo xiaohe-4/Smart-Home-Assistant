@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button, Col, Progress, Row, Space, Tag } from "antd";
 import { deviceApi, butlerApi } from "../api";
 import ChartCard from "../components/ChartCard";
@@ -10,18 +10,21 @@ export default function Devices() {
   const [selected, setSelected] = useState<DeviceItem | null>(null);
   const [series, setSeries] = useState<EnergyPoint[]>([]);
   const [loading, setLoading] = useState(true);
+  const selectedId = useRef<number | undefined>(undefined);
 
   const load = (keepId?: number) =>
     deviceApi.list().then((list) => {
       setDevices(list);
-      const current = list.find((d) => d.id === keepId) || list[0] || null;
+      const current = list.find((d) => d.id === (keepId ?? selectedId.current)) || list[0] || null;
+      selectedId.current = current?.id;
       setSelected(current);
       if (current) return deviceApi.energy(current.id).then(setSeries);
+      setSeries([]);
     });
 
   useEffect(() => {
-    load().finally(() => setLoading(false));
-    const refresh = () => void load(selected?.id);
+    void load().finally(() => setLoading(false));
+    const refresh = () => void load(selectedId.current);
     window.addEventListener("se-home-update", refresh);
     return () => window.removeEventListener("se-home-update", refresh);
   }, []);
@@ -50,14 +53,14 @@ export default function Devices() {
               <div
                 key={d.id}
                 className={`device-tile ${selected?.id === d.id ? "active" : ""} ${d.status === "运行" ? "live" : ""}`}
-                onClick={() => { setSelected(d); deviceApi.energy(d.id).then(setSeries); }}
+                onClick={() => { selectedId.current = d.id; setSelected(d); deviceApi.energy(d.id).then(setSeries); }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <b>{d.name}</b>
                   <Tag color={d.status === "运行" ? "green" : d.status === "关闭" ? "red" : "default"}>{d.status}</Tag>
                 </div>
                 <div className="device-power">{d.current_power}<span> W</span></div>
-                <div style={{ color: "#5f746a", fontSize: 12, marginBottom: 8 }}>今日 {d.today_energy} kWh · 运行 {d.runtime_hours} h</div>
+                <div className="explain-note">今日 {d.today_energy} kWh · 运行 {d.runtime_hours} h</div>
                 <Progress percent={d.share} size="small" strokeColor="#16a34a" />
                 <Space style={{ marginTop: 8 }} onClick={(e) => e.stopPropagation()}>
                   <Button size="small" onClick={() => void control(`关闭${d.name}`)}>关闭</Button>
