@@ -101,7 +101,7 @@ export default function Life() {
   return (
     <div>
       <h1 className="page-title">今天的安排</h1>
-      <p className="page-sub">电价、今晚要办的事、电网邀约，按这户 30 天的数来。邀约里的奖励是示意，不是已经到账。</p>
+      <p className="page-sub">电价、今晚要办的事、电网邀约，按这家近 30 天的用电计算。邀约里的奖励只是示意，还没到账。</p>
       {data ? <PriceClock clock={data.clock} /> : null}
       {data?.demand ? (
         <DemandBanner
@@ -151,7 +151,7 @@ export default function Life() {
                 </Button>
               ))}
             </div>
-            <Button type="primary" size="small" onClick={() => { sessionStorage.setItem("se-butler-cmd", `把空调调到${degree}度`); nav("/butler"); }}>让宝强去拧</Button>
+            <Button type="primary" size="small" onClick={() => { sessionStorage.setItem("se-butler-cmd", `把空调调到${degree}度`); nav("/butler"); }}>让宝强去调</Button>
           </Card>
         </Col>
         <Col xs={24} md={8}>

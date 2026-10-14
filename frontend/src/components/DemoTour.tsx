@@ -11,10 +11,10 @@ const CORE = [
 
 const ADVANCED = [
   ...CORE,
-  { title: "完整 · 能耗结构", path: "/energy", text: "空调约 41%，热水器约 22%。分路汇总，不是总表 NILM。" },
-  { title: "完整 · 负荷预测", path: "/prediction", text: "只报 MAE / RMSE / MAPE / R²，和时间序列切分。不用 100-MAPE 当准确率。" },
-  { title: "完整 · 生活系统", path: "/life", text: "评委追问页：电价时钟、电网邀约、谷电预约。演示默认不进。" },
-  { title: "完整 · 数据对照", path: "/sources", text: "仿真户 vs 验证户。缺模态已降级。不把仿真 R² 当成真实家庭精度。" },
+  { title: "完整 · 能耗结构", path: "/energy", text: "空调约 41%，热水器约 22%。这是分路电表加总，不是从一块总表里拆出来的。" },
+  { title: "完整 · 负荷预测", path: "/prediction", text: "只看 MAE、RMSE、MAPE、R²，以及按时间切开的验证。不要把 100 减 MAPE 当成准确率。" },
+  { title: "完整 · 今日安排", path: "/life", text: "电价时段、电网邀约、谷电预约。3 分钟演示默认不进这一页。" },
+  { title: "完整 · 数据对照", path: "/sources", text: "演示家庭和对照家庭。对照家庭缺人和天气，缺的部分不硬算。仿真的 R² 不能当成真实家庭的精度。" },
   { title: "完整 · 模型实验", path: "/models", text: "基线对照 + 仿真/真实 MAPE。异常 F1=0.35 主动展示。" },
 ];
 

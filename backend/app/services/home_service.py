@@ -15,28 +15,28 @@ def list_homes(db: Session) -> list[dict]:
         {
             "id": settings.demo_user_id,
             "key": "demo",
-            "label": "演示户",
-            "name": demo.name if demo else "成都仿真四口",
+            "label": "演示家庭",
+            "name": demo.name if demo else "成都四口之家",
             "kind": "simulation",
             "days": 30,
             "circuits": 8,
             "has_occupancy": True,
             "has_weather": True,
             "load_identification": True,
-            "note": "完整四路，现场主演示。含仿真。",
+            "note": "用电、室温、在家人数、天气都有。含仿真，用于现场演示。",
         },
         {
             "id": settings.real_user_id,
             "key": "real",
-            "label": "验证户",
-            "name": real.name if real else "宿舍总表风格验证户",
+            "label": "对照家庭",
+            "name": real.name if real else "宿舍用电对照",
             "kind": "public_or_real",
             "days": 14,
             "circuits": 3,
             "has_occupancy": False,
             "has_weather": False,
             "load_identification": False,
-            "note": "缺模态已降级。本户仅插座分路，不做总表 NILM。",
+            "note": "没有人和天气数据。只有插座用电，不从总表拆电器。",
             "available": real is not None,
         },
     ]
@@ -63,9 +63,9 @@ def compare_homes(db: Session) -> dict:
     real_rows = db.query(EnergyRecord).filter(EnergyRecord.user_id == settings.real_user_id).count()
     return {
         "boundary": [
-            "演示含仿真。",
-            "负荷识别不是 NILM。",
-            "异常 F1=0.35，上线以规则为准。",
+            "演示数据里含仿真。",
+            "负荷识别靠分路电表，不是从总表拆电器。",
+            "异常 F1=0.35，判断以规则为准。",
         ],
         "rows": [
             {"item": "天数", "demo": "30", "real": "14"},
@@ -97,6 +97,6 @@ def compare_homes(db: Session) -> dict:
         "demo_rows": demo_rows,
         "real_rows": real_rows,
         "range": {"start": start.isoformat(sep=" "), "end": end.isoformat(sep=" ")},
-        "note": "预测在验证户上变差是加分项：说明没有只在仿真上刷分。现场仍以演示户打 03:17 这一幕。",
+        "note": "对照家庭上预测变差是预期结果，说明没有只拿仿真数据把分数做高。现场演示仍看演示家庭的 03:17。",
         "compare": metrics.get("compare") or {},
     }

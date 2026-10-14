@@ -38,12 +38,12 @@ export default function Profile() {
 
   return (
     <div>
-      <h1 className="page-title">这户概况</h1>
+      <h1 className="page-title">家庭概况</h1>
       <p className="page-sub">{profile ? `${profile.city} · ${profile.season} · ${profile.household_name}` : "加载中"}</p>
       <Row gutter={16} style={{ marginBottom: 16 }}>
         <Col xs={24} md={8}>
           <Card loading={loading}>
-            <Statistic title="能源效率" value={profile?.energy_score ?? 0} suffix="/100" />
+            <Statistic title="能效评分" value={profile?.energy_score ?? 0} suffix="/100" />
             <Progress percent={profile?.energy_score ?? 0} strokeColor="#16a34a" />
           </Card>
         </Col>
@@ -55,11 +55,11 @@ export default function Profile() {
         <Col span={8}><Card><Statistic title="今日电费" value={insights?.tou.total_cost ?? 0} precision={2} suffix="元" /></Card></Col>
         <Col span={8}><Card><Statistic title="今日碳排" value={insights?.carbon_kg ?? 0} precision={2} suffix="kg" /></Card></Col>
       </Row>
-      <Card title="这户现在怎样" extra={<a onClick={() => nav("/models")}>模型实验</a>} style={{ marginBottom: 16 }}>
+      <Card title="今天的情况" extra={<a onClick={() => nav("/models")}>模型实验</a>} style={{ marginBottom: 16 }}>
         <Typography.Paragraph>{insights?.assistant.summary}</Typography.Paragraph>
         {lab?.forecast.metrics?.R2 != null ? (
           <Typography.Paragraph type="secondary">
-            预测 R² {lab.forecast.metrics.R2} · 负荷识别 {lab.load.accuracy}（有标签窗口，不是 NILM）· 异常 F1 {lab.anomaly.f1}
+            预测 R² {lab.forecast.metrics.R2} · 负荷识别准确率 {lab.load.accuracy}（按已标注的用电窗口，不是从总表拆电器）· 异常 F1 {lab.anomaly.f1}
           </Typography.Paragraph>
         ) : null}
       </Card>

@@ -35,7 +35,7 @@ export default function Assistant() {
 
   return (
     <div>
-      <h1 className="page-title">AI 能源助手</h1>
+      <h1 className="page-title">能源助手</h1>
       <p className="page-sub">问为什么耗电、电费多少。数字是算好的，这里只是把它说出来。</p>
       <Card>
         <Space wrap style={{ marginBottom: 16 }}>

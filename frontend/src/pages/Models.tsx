@@ -106,7 +106,7 @@ export default function Models() {
             <Col span={8}><Statistic title="对照点数" value={anom?.labeled ?? 0} /></Col>
           </Row>
         </Card>
-        <Card title="实验 3 · 负荷识别" extra={<Tag color="gold">不是总表 NILM</Tag>}>
+        <Card title="实验 3 · 负荷识别" extra={<Tag color="gold">不是从总表拆电器</Tag>}>
           <p className="honesty-note">{load?.honesty}</p>
           <ChartCard title="窗口特征重要性" loading={loading} empty={!loadImp.length} option={loadBar} height={220} />
         </Card>

@@ -15,13 +15,13 @@ settings = get_settings()
 MODALITIES = {
     "energy": {
         "key": "energy",
-        "label": "电力时序",
+        "label": "用电记录",
         "table": "energy_records",
         "hardware": "智能电表 / 插座功率计",
         "fields": ["timestamp", "device_id", "power", "voltage", "current", "energy"],
         "required": ["timestamp", "device_id", "power", "energy"],
-        "used_by": ["预测", "异常", "电费", "负荷分解"],
-        "note": "演示是分设备计量。页面上的负荷分解按表计汇总，不是从总电表做 NILM 盲拆。",
+        "used_by": ["预测", "异常", "电费", "各电器占比"],
+        "note": "演示按每台电器单独计量。页面上的占比是电表加总，不是从一块总表里拆出来的。",
     },
     "environment": {
         "key": "environment",
@@ -30,42 +30,42 @@ MODALITIES = {
         "hardware": "温湿度 / 光照 / CO₂ 传感器",
         "fields": ["timestamp", "temperature", "humidity", "light", "co2"],
         "required": ["timestamp", "temperature", "humidity"],
-        "used_by": ["预测特征", "数字孪生", "空调建议"],
-        "note": "室内温度进入 XGBoost；光照和 CO₂ 主要用于解释，不参与精度指标。",
+        "used_by": ["预测", "室内状态", "空调建议"],
+        "note": "室内温度会参与预测。光照和二氧化碳只用来解释，不计入准确率。",
     },
     "behavior": {
         "key": "behavior",
-        "label": "行为占用",
+        "label": "人在哪",
         "table": "behavior_records",
         "hardware": "门磁、人体感应、手机在家、日程",
         "fields": ["timestamp", "occupancy", "location", "activity"],
         "required": ["timestamp", "occupancy"],
-        "used_by": ["预测特征", "低占用浪费", "调度清单"],
+        "used_by": ["预测", "人少还在耗电", "今晚任务"],
         "note": "演示里占用/房间/活动由家庭作息规则生成，不是摄像头识别。",
     },
     "weather": {
         "key": "weather",
-        "label": "天气与外部",
+        "label": "室外天气",
         "table": "weather_records",
         "hardware": "气象 API；电价来自配置",
         "fields": ["timestamp", "temperature", "humidity", "weather", "wind_speed"],
         "required": ["timestamp", "temperature", "weather"],
-        "used_by": ["洞察文案", "空调 what-if", "峰谷电价"],
-        "note": "XGBoost 主特征不含室外天气。电价、碳因子在配置里，换城市只改配置。",
+        "used_by": ["说明文字", "空调假设", "峰谷电价"],
+        "note": "预测的主要特征不含室外天气。电价和碳排放系数在配置里，换城市只改配置。",
     },
 }
 
 ADAPTERS = [
     {
         "id": "demo_csv",
-        "label": "演示 CSV 管道",
+        "label": "演示数据文件",
         "status": "active",
         "how": "scripts/generate_demo_data.py → data/demo/*.csv → scripts/init_db.py",
         "writes": ["energy", "environment", "behavior", "weather"],
     },
     {
         "id": "rest_ingest",
-        "label": "REST 采集适配器",
+        "label": "接口采集",
         "status": "ready",
         "how": "POST /api/sources/validate 校验同一套字段；data_mode=live 后才写入。",
         "writes": ["energy", "environment", "behavior", "weather"],
@@ -135,9 +135,9 @@ def alignment_report(db: Session, user_id: int) -> dict:
             "weather": len(energy - weather),
         },
         "note": (
-            "验证户无占用/天气，按缺模态降级，只要求电力时序对齐。"
+            "对照家庭没有人和天气数据，只按用电时间对齐。"
             if degraded
-            else "对齐按演示日 5 分钟时间戳交集计算。四路都有点，预测和环境解释才能同时成立。"
+            else "按演示日每 5 分钟对齐。用电、室温、在家人数和天气都有记录时，预测和解释才能一起成立。"
         ),
         "degraded": degraded,
     }
@@ -193,8 +193,8 @@ def get_source_map(db: Session, user_id: int) -> dict:
         "portability": [
             {
                 "step": 1,
-                "title": "换接入层",
-                "detail": "采集适配器按同一张合同写入四张表，不必改预测和策略代码。",
+                "title": "换采集方式",
+                "detail": "新的采集程序按同一套字段写入四张表，预测和策略代码不用改。",
             },
             {
                 "step": 2,
@@ -203,19 +203,19 @@ def get_source_map(db: Session, user_id: int) -> dict:
             },
             {
                 "step": 3,
-                "title": "按户重训",
-                "detail": "XGBoost 与 Isolation Forest 是在这户 30 日上拟合的。换家庭后跑 scripts/train_models.py。",
+                "title": "换家庭后重新训练",
+                "detail": "预测和异常模型是用这一家 30 天的数据训练的。换一户后运行 scripts/train_models.py。",
             },
         ],
         "limits": [
-            "管家拧开关是家庭侧模拟，未对接真实 IoT。",
-            "占用/活动在演示中由作息规则生成，不是视频识别。",
-            "负荷分解来自分路计量；只有总电表时需要另接 NILM。",
+            "管家开关是模拟的，没有接真实设备。",
+            "演示里的「人在不在家」按作息生成，不是摄像头识别。",
+            "各电器占比来自分路电表。只有一块总表时，识别不了具体电器。",
         ],
         "homes": list_homes(db),
         "compare": compare_homes(db),
         "load_identification_applicable": user_id != settings.real_user_id,
-        "honesty": "演示户是仿真，为了稳定打出 03:17。验证户是公开负荷风格/真实导出，缺模态已降级。不把仿真 R² 当成真实家庭精度。",
+        "honesty": "演示家庭是仿真数据，用来稳定走出凌晨 03:17 这一幕。对照家庭来自公开负荷或真实导出，没有人和天气，缺的部分不硬算。仿真的 R² 不能当成真实家庭的精度。",
     }
 
 
@@ -238,13 +238,13 @@ def degrade_report(db: Session, user_id: int, dropped: list[str]) -> dict:
     after = correlation_report(after_frame)
     broken = []
     if "energy" in dropped:
-        broken.append("没有电力时序，预测、异常、电费全部停。")
+        broken.append("没有用电记录时，预测、异常和电费都算不了。")
     if "behavior" in dropped:
-        broken.append("低占用浪费、离家关灯、调度清单里的人数会失真。")
+        broken.append("人少还在耗电、离家关灯、今晚任务里的人数会不准。")
     if "environment" in dropped:
-        broken.append("预测仍可用功率滞后项，但热驱动解释变弱。")
+        broken.append("预测仍可用之前的功率，但不好再解释是不是室温把电用高了。")
     if "weather" in dropped:
-        broken.append("空调室外温差文案会降级，XGBoost 主特征不受影响。")
+        broken.append("空调和室外温差的说明会变短。预测用的主要特征不受影响。")
     kept_features = []
     lost_features = []
     mapping = {
@@ -272,8 +272,8 @@ def degrade_report(db: Session, user_id: int, dropped: list[str]) -> dict:
         },
         "kept_features": kept_features,
         "lost_features": lost_features,
-        "broken": broken or ["当前四路都在，没有降级。"],
-        "note": "这是同一日数据上的对照，不改数据库。缺模态时表可以左连接，模型用前向填充或空值，规则会降级而不是崩溃。",
+        "broken": broken or ["用电、室温、在家人数和天气都在，没有缺项。"],
+        "note": "这是同一天数据的对照，不会改数据库。缺了某一路时，仍用已有记录对齐；模型用前一个值或空值补上，规则会放宽，不会直接报错。",
     }
 
 

@@ -49,16 +49,16 @@ export default function Sources() {
 
   return (
     <div>
-      <h1 className="page-title">仿真户 vs 验证户</h1>
+      <h1 className="page-title">两套家庭对照</h1>
       <p className="page-sub">{data?.honesty}</p>
-      <div className="honesty-note">{compare?.note || "现在这户是演示数据。另一户用来对真表或公开数据。"}</div>
+      <div className="honesty-note">{compare?.note || "当前是演示数据。另一套用来对照真实电表或公开数据。"}</div>
       {compare?.boundary?.length ? (
         <p className="page-sub">要注意：{compare.boundary.join(" ")}</p>
       ) : null}
       <Card title="对照表" style={{ margin: "12px 0 16px" }} loading={loading}>
         <table className="compare-table">
           <thead>
-            <tr><th>项目</th><th>仿真户</th><th>验证户</th></tr>
+            <tr><th>项目</th><th>演示家庭</th><th>对照家庭</th></tr>
           </thead>
           <tbody>
             {(compare?.rows || []).map((row) => (
@@ -72,7 +72,7 @@ export default function Sources() {
         </table>
       </Card>
       {data?.load_identification_applicable === false ? (
-        <div className="honesty-note">本户仅总功率/插座分路，不做家电分类，负荷识别模块不适用。</div>
+        <div className="honesty-note">这一户只有总功率和插座分路，分不出具体家电，负荷识别用不上。</div>
       ) : null}
       {data ? <ModalityStrip items={data.modalities} percent={data.alignment.percent} clickable={false} /> : null}
 
@@ -82,9 +82,9 @@ export default function Sources() {
             <div className="kpi-value" style={{ fontSize: 22 }}>{data?.household.name}</div>
             <div className="kpi-hint">{data?.city} · {data?.season} · {data?.household.size} 人 · {data?.household.home_type}</div>
             <div style={{ marginTop: 8 }}>
-              电价 峰 {data?.tariff.peak} / 平 {data?.tariff.flat} / 谷 {data?.tariff.valley} 元 · 碳因子 {data?.tariff.carbon}
+              电价 峰 {data?.tariff.peak} / 平 {data?.tariff.flat} / 谷 {data?.tariff.valley} 元 · 每度电碳排放 {data?.tariff.carbon} kg
             </div>
-            <Tag style={{ marginTop: 8 }}>{data?.mode === "demo" ? "演示模式：只校验不落库" : "live 可写入"}</Tag>
+            <Tag style={{ marginTop: 8 }}>{data?.mode === "demo" ? "演示：只检查，不保存" : "可以写入数据库"}</Tag>
           </Card>
         </Col>
         <Col xs={24} md={8}>
@@ -97,13 +97,13 @@ export default function Sources() {
           </Card>
         </Col>
         <Col xs={24} md={8}>
-          <Card loading={loading} title="XGBoost 实际吃进去的特征">
+          <Card loading={loading} title="预测用到的特征">
             <div className="feature-chips">
               {(data?.forecast_features || []).map((f) => (
                 <span key={f} className={`feature-chip ${degrade?.lost_features?.includes(f) ? "lost" : ""}`}>{f}</span>
               ))}
             </div>
-            <div className="kpi-hint" style={{ marginTop: 8 }}>室外天气不在主特征里。缺占用时规则降级，不是崩溃。</div>
+            <div className="kpi-hint" style={{ marginTop: 8 }}>室外天气不参与预测。没有「人在不在家」时，相关规则会放宽，页面不会因此报错。</div>
           </Card>
         </Col>
       </Row>
@@ -126,15 +126,15 @@ export default function Sources() {
           <div className="degrade-compare">
             <div>
               <b>现在</b>
-              <div>功率×室温 {degrade?.before.power_vs_temperature ?? "--"}</div>
-              <div>功率×占用 {degrade?.before.power_vs_occupancy ?? "--"}</div>
-              <div>功率×室外 {degrade?.before.power_vs_outdoor ?? "--"}</div>
+              <div>功率和室温 {degrade?.before.power_vs_temperature ?? "--"}</div>
+              <div>功率和在家人数 {degrade?.before.power_vs_occupancy ?? "--"}</div>
+              <div>功率和室外温度 {degrade?.before.power_vs_outdoor ?? "--"}</div>
             </div>
             <div>
               <b>去掉后</b>
-              <div>功率×室温 {degrade?.after.power_vs_temperature ?? "--"}</div>
-              <div>功率×占用 {degrade?.after.power_vs_occupancy ?? "--"}</div>
-              <div>功率×室外 {degrade?.after.power_vs_outdoor ?? "--"}</div>
+              <div>功率和室温 {degrade?.after.power_vs_temperature ?? "--"}</div>
+              <div>功率和在家人数 {degrade?.after.power_vs_occupancy ?? "--"}</div>
+              <div>功率和室外温度 {degrade?.after.power_vs_outdoor ?? "--"}</div>
             </div>
           </div>
           {(degrade?.broken || []).map((line) => (
@@ -142,7 +142,7 @@ export default function Sources() {
           ))}
           <div className="kpi-hint" style={{ marginTop: 8 }}>{degrade?.note}</div>
         </Card>
-        <Card title="移植三步">
+        <Card title="换一户要做的三步">
           {(data?.portability || []).map((p) => (
             <div key={p.step} className="rule-row">
               <div>
@@ -168,7 +168,7 @@ export default function Sources() {
             </div>
           ))}
         </Card>
-        <Card title="接入合同校验" extra="演示模式只验字段，不写入实验库">
+        <Card title="接入数据校验" extra="演示只检查字段，不写入数据库">
           <div style={{ marginBottom: 8 }}>
             {Object.keys(SAMPLE).map((key) => (
               <Button

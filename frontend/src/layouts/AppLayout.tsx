@@ -30,13 +30,13 @@ const items = [
   { key: "/energy", icon: <BarChartOutlined />, label: "能耗分析" },
   { key: "/devices", icon: <AppstoreOutlined />, label: "家庭设备" },
   { key: "/prediction", icon: <LineChartOutlined />, label: "能耗预测" },
-  { key: "/anomaly", icon: <AlertOutlined />, label: "异常" },
+  { key: "/anomaly", icon: <AlertOutlined />, label: "用电异常" },
   { key: "/strategy", icon: <ThunderboltOutlined />, label: "节能建议" },
   { key: "/butler", icon: <CustomerServiceOutlined />, label: "管家宝强" },
-  { key: "/life", icon: <ScheduleOutlined />, label: "生活系统" },
+  { key: "/life", icon: <ScheduleOutlined />, label: "今日安排" },
   { key: "/guide", icon: <QuestionCircleOutlined />, label: "使用说明" },
   { key: "/assistant", icon: <CommentOutlined />, label: "能源助手" },
-  { key: "/profile", icon: <ExperimentOutlined />, label: "这户概况" },
+  { key: "/profile", icon: <ExperimentOutlined />, label: "家庭概况" },
   {
     key: "lab",
     icon: <FundOutlined />,
@@ -165,9 +165,9 @@ export default function AppLayout() {
               ) : null}
               <span className="status-dot" />
               <Typography.Text className="header-home">
-                {userId === 2 ? "验证户 · 缺模态已降级" : "演示户 · 成都仿真四口"}
+                {userId === 2 ? "对照家庭 · 没有人和天气数据" : "演示家庭 · 成都四口之家"}
               </Typography.Text>
-              <span className="header-chip">{userId === 2 ? "公开/真实对照" : "演示含仿真"}</span>
+              <span className="header-chip">{userId === 2 ? "公开数据对照" : "含仿真数据"}</span>
             </div>
             <div className="header-right">
               <Select
@@ -176,8 +176,8 @@ export default function AppLayout() {
                 value={userId}
                 onChange={switchHome}
                 options={[
-                  { value: 1, label: "演示户 · 仿真四口" },
-                  { value: 2, label: "验证户 · 宿舍风格" },
+                  { value: 1, label: "演示家庭 · 四口之家" },
+                  { value: 2, label: "对照家庭 · 宿舍用电" },
                 ]}
               />
               <Button type="text" size="small" className="guide-link" icon={<QuestionCircleOutlined />} onClick={() => nav("/guide")}>

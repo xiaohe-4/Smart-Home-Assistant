@@ -111,7 +111,7 @@ export default function ButlerDock({ muted = false }: { muted?: boolean }) {
             <Button icon={<AudioOutlined />} type={listening ? "primary" : "default"} onClick={mic} />
             <Button type="primary" loading={busy} onClick={() => void run(text)}>去办</Button>
           </Space.Compact>
-          <Button type="link" onClick={() => nav("/butler")}>打开管家房</Button>
+          <Button type="link" onClick={() => nav("/butler")}>打开管家</Button>
         </div>
       ) : null}
     </>

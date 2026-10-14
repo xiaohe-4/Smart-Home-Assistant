@@ -79,9 +79,9 @@ def assistant_summary(db: Session, user_id: int) -> dict:
     latest = latest_anomalies(db, user_id, limit=1)
     anomaly_text = latest[0]["description"] if latest else None
     summary = (
-        f"今天家庭用电 {profile['today_energy']:.2f} kWh，主要来自{profile['main_device']}。"
-        f"系统评估当前能源效率为 {profile['energy_score']:.0f}/100，"
-        f"预计通过优化运行策略可降低约 {profile['saving_potential_percent']:.1f}% 的能源消耗。"
+        f"今天用了 {profile['today_energy']:.2f} kWh，主要是{profile['main_device']}。"
+        f"能效 {profile['energy_score']:.0f} 分（满分 100）。"
+        f"按建议调整，大约能少用 {profile['saving_potential_percent']:.1f}%。"
     )
     if anomaly_text:
         summary += f"同时发现异常：{anomaly_text}"

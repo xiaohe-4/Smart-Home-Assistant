@@ -59,7 +59,7 @@ export default function Anomaly() {
 
   return (
     <div>
-      <h1 className="page-title">异常</h1>
+      <h1 className="page-title">用电异常</h1>
       <p className="page-sub">
         凌晨用水、没人还在耗电、灯一直亮，按这几条规则判。模型只给一个分，F1 是 0.35，所以以规则为准。
         <a style={{ marginLeft: 8 }} onClick={() => nav("/models")}>看模型数字</a>
